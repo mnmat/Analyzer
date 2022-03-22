@@ -2,13 +2,13 @@
 #include "FWCore/TestProcessor/interface/TestProcessor.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
-static constexpr auto s_tag = "[PerformanceStudies]";
+static constexpr auto s_tag = "[EfficiencyStudies]";
 
-TEST_CASE("Standard checks of PerformanceStudies", s_tag) {
+TEST_CASE("Standard checks of EfficiencyStudies", s_tag) {
   const std::string baseConfig{
       R"_(from FWCore.TestProcessor.TestProcess import *
 process = TestProcess()
-process.toTest = cms.EDProducer("PerformanceStudies"
+process.toTest = cms.EDProducer("EfficiencyStudies"
 #necessary configuration parameters
  )
 process.moduleToTest(process.toTest)
