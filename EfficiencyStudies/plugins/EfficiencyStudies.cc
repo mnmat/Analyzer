@@ -84,7 +84,7 @@ private:
 			  const HGCRecHitCollection& rechitsFH,
 			  const HGCRecHitCollection& rechitsBH) const;
 
-  std::shared_ptr<hgcal::RecHitTools> recHitTools;
+  hgcal::RecHitTools recHitTools_;
 
   // ----------member data ---------------------------
   edm::EDGetTokenT<TrackCollection> tracksToken_;  //used to select what tracks to read from configuration file
@@ -93,6 +93,7 @@ private:
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsFHToken_;
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsBHToken_;
   edm::EDGetTokenT<reco::CaloClusterCollection> hgcalLayerClustersToken_;
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeomToken_;
 
   double trackPtMin_;
 
@@ -119,6 +120,7 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       hgcalRecHitsFHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsFH"))),
       hgcalRecHitsBHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsBH"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
+      caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
       trackPtMin_(iConfig.getParameter<double>("trackPtMin")) {
 
 
@@ -126,7 +128,7 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
 
-  recHitTools.reset(new hgcal::RecHitTools());
+  //recHitTools.reset(new hgcal::RecHitTools());
   //now do what ever initialization is needed
 }
 
@@ -188,11 +190,13 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::map<DetId, const HGCRecHit*> hitMap;
   fillHitMap(hitMap, *recHitHandleEE, *recHitHandleFH, *recHitHandleBH);
 
-   // init vars
+  // init vars
+  const CaloGeometry &geom = iSetup.getData(caloGeomToken_);
+  //edm::ESHandle<CaloGeometry> geom = iSetup.getHandle(caloGeomToken_);
   //edm::ESHandle<CaloGeometry> geom; 
   //edm::ESGetToken<CaloGeometry,CaloGeometryRecord> geomToken_; 
   //iSetup.get<CaloGeometryRecord>().get(geom); 
-  //recHitTools->setGeometry(*geom);
+  recHitTools_.setGeometry(geom);
 
 
   int nTrack = 0;
@@ -223,8 +227,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         nSimhits++;
         DetId detid_ = (it_sc_haf.first);
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
-	//unsigned int layer_ = recHitTools->getLayerWithOffset(detid_); 
-        //std::cout << "layer = " << layer_ << "\n";                                                                                      
+	      unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_); 
+        std::cout << "layer = " << layer_ << "\n";                                                                                      
 
         if (itcheck != hitMap.end()){
           nRechits++;
