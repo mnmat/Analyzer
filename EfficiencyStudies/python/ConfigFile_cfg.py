@@ -17,6 +17,13 @@ process.source = cms.Source("PoolSource",
             'file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/None/singlemuon_flatEGun_hgcalCenter/step3/step3_singlemuon_e100GeV_nopu.root'
                 )
                             )
+outfile_  = "file:file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/None/singlemuon_flatEGun_hgcalCenter/step3/ttree_singlemuon_e100GeV_nopu.root"
+
+process.TFileService = cms.Service("TFileService",
+                                   fileName = cms.string(outfile_),
+                                   closeFileFast = cms.untracked.bool(True)
+                               )
+
 
 process.demo = cms.EDAnalyzer('EfficiencyStudies',
    tracks = cms.untracked.InputTag('generalTracks'),
@@ -25,7 +32,7 @@ process.demo = cms.EDAnalyzer('EfficiencyStudies',
    hgcalRecHitsFH = cms.InputTag("HGCalRecHit", "HGCHEFRecHits"),
    hgcalRecHitsBH = cms.InputTag("HGCalRecHit", "HGCHEBRecHits"),
    hgcalLayerClusters = cms.InputTag("hgcalLayerClusters", "", "RECO"),
-   trackPtMin = cms.double(0.3)
+   #trackPtMin = cms.double(0.3)
                               )
 
 process.p = cms.Path(process.demo)
