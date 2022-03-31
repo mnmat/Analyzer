@@ -256,9 +256,9 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       hgcalRecHitsFHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsFH"))),
       hgcalRecHitsBHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsBH"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
-      caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
-      // trackPtMin_(iConfig.getParameter<double>("trackPtMin")) 
-      {
+      // trackPtMin_(iConfig.getParameter<double>("trackPtMin")), 
+      caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()){
+
 
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
@@ -466,7 +466,7 @@ EfficiencyStudies::~EfficiencyStudies() {
   // please remove this method altogether if it would be left empty
 
 
-  TLegend *leg = new TLegend(0.68,0.72,0.98,0.92); // Is dynamic memory allocation necessary?
+  //TLegend *leg = new TLegend(0.68,0.72,0.98,0.92); // Is dynamic memory allocation necessary?
   TCanvas *c1 = new TCanvas("c1","c1"); // Is dynamic memory allocation necessary?
 
   std::vector<int> colors = {1, 4, 2};
@@ -529,7 +529,7 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH1Plot(c1, hit_rec_histo, "Rechits.png", axes, folder);
   createTH1Plot(c1, hit_lc_histo, "LChits.png", axes, folder);
 
-  hists = {sim_histo, hit_rec_histo, hit_lc_histo};
+  hists = {hit_sim_histo, hit_rec_histo, hit_lc_histo};
   createTHSPlot(c1, colors, hists, "Stackhits.png", axes, legend, pos, folder,"");
 
 
@@ -820,7 +820,6 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::vector<double> temp_rechits(47,0);
   std::vector<double> temp_lchits(47,0);
 
-  int distance = 0;
   float cp_eta = 0;
   float cp_phi = 0;
 
