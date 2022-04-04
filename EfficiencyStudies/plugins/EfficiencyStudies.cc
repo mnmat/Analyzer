@@ -144,16 +144,6 @@ private:
   TH1F *hit_rec_histo;
   TH1F *hit_lc_histo;
 
-  int hit_layer_sim[47];
-  int hit_layer_sim_si[47];
-  int hit_layer_sim_sc[47];
-  int hit_layer_rec[47];
-  int hit_layer_rec_si[47];
-  int hit_layer_rec_sc[47];
-  int hit_layer_lc[47];
-  int hit_layer_lc_si[47];
-  int hit_layer_lc_sc[47];
-
   TH1F* hit_layer_sim_histo[47];
   TH1F* hit_layer_rec_histo[47];
   TH1F* hit_layer_lc_histo[47];
@@ -208,8 +198,6 @@ private:
   TH1F* connectivity_rec_sc_histo;
   TH1F* connectivity_sim_sc_histo;
 
-  // Weighted connectivity plots
-
   TH1F* connectivity_w_lc_histo;
   TH1F* connectivity_w_sim_histo;
   TH1F* connectivity_w_rec_histo;
@@ -221,6 +209,30 @@ private:
   TH1F* connectivity_w_lc_sc_histo;
   TH1F* connectivity_w_sim_sc_histo;
   TH1F* connectivity_w_rec_sc_histo;
+
+  TH1F* connectivity_max_lc_histo;
+  TH1F* connectivity_max_sim_histo;
+  TH1F* connectivity_max_rec_histo;
+
+  TH1F* connectivity_max_lc_si_histo;
+  TH1F* connectivity_max_sim_si_histo;
+  TH1F* connectivity_max_rec_si_histo;
+
+  TH1F* connectivity_max_lc_sc_histo;
+  TH1F* connectivity_max_sim_sc_histo;
+  TH1F* connectivity_max_rec_sc_histo;
+
+  TH1F* connectivity_skip_lc_histo;
+  TH1F* connectivity_skip_sim_histo;
+  TH1F* connectivity_skip_rec_histo;
+
+  TH1F* connectivity_skip_lc_si_histo;
+  TH1F* connectivity_skip_sim_si_histo;
+  TH1F* connectivity_skip_rec_si_histo;
+
+  TH1F* connectivity_skip_lc_sc_histo;
+  TH1F* connectivity_skip_sim_sc_histo;
+  TH1F* connectivity_skip_rec_sc_histo;
 
 
   // Distance plots
@@ -277,6 +289,8 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   // Branch (Review if this is necessary)
   
+  /*
+  
   tree->Branch("hit_sim", &hit_sim);
   tree->Branch("hit_rec", &hit_rec);
   tree->Branch("hit_lc", &hit_lc);
@@ -310,23 +324,31 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     tree->Branch(t_name, &hit_layer_lc[i]);
   }
 
+  */
+
   // Validation Plots (check Caloparticles, etc.)
 
   val_particle__sim_histo = new TH1F("Simclusters","Simclusters",5,0,5);
   val_particle__sim_histo->SetLineColor(kBlue);
+
   val_particle__rec_histo = new TH1F("Recclusters","Recclusters",500,0,500);
   val_particle__rec_histo->SetLineColor(kRed);
+
   val_particle__lc_histo = new TH1F("LCs","LCs",500,0,500);
   val_particle__lc_histo->SetLineColor(kGreen);
+
 
   // Hit Plots
 
   hit_sim_histo = new TH1F("Simhits","Simhits",500,0,500);
   hit_sim_histo->SetLineColor(kBlue);
+
   hit_rec_histo = new TH1F("Rechits","Rechits",500,0,500);
   hit_rec_histo->SetLineColor(kRed);
+
   hit_lc_histo = new TH1F("LChits","LChits",500,0,500);
   hit_lc_histo->SetLineColor(kGreen);
+
 
   for(int i=0;i<47;i++){
 
@@ -349,13 +371,16 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     hit_layer_sim_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_histo[i]->SetLineColor(kBlue);
 
+
     t_name = rec_branch;
     hit_layer_rec_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_histo[i]->SetLineColor(kRed);
 
+
     t_name = lc_branch;
     hit_layer_lc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_histo[i]->SetLineColor(kGreen);
+
 
     // Si hits
 
@@ -363,13 +388,16 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     hit_layer_sim_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_si_histo[i]->SetLineColor(kBlue);
 
+
     t_name = rec_branch+"_si";
     hit_layer_rec_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_si_histo[i]->SetLineColor(kRed);
 
+
     t_name = lc_branch+"_si";
     hit_layer_lc_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_si_histo[i]->SetLineColor(kGreen);
+
 
     // Scintillator hits
 
@@ -377,13 +405,16 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     hit_layer_sim_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_sc_histo[i]->SetLineColor(kBlue);
 
+
     t_name = rec_branch+"_sc";
     hit_layer_rec_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_sc_histo[i]->SetLineColor(kRed);
 
+
     t_name = lc_branch+"_sc";
     hit_layer_lc_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_sc_histo[i]->SetLineColor(kGreen);
+
   }
 
   // Detector Hits Plots (Hits plotted over all layers/entire detector) 
@@ -402,24 +433,33 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   det_bool_sim_histo = new TH1F("Sim layer total", "Sim layer total", 47,0,47);
   det_bool_sim_histo->SetLineColor(kBlue);
+
   det_bool_rec_histo = new TH1F("Rec layer total", "Rec layer total", 47,0,47);
   det_bool_rec_histo->SetLineColor(kRed);
+
   det_bool_lc_histo = new TH1F("LC layer total", "LC layer total", 47,0,47);
   det_bool_lc_histo->SetLineColor(kGreen);
 
+
   det_bool_sim_si_histo = new TH1F("Sim layer total (Si)", "Sim layer total (Si)", 47,0,47);
   det_bool_sim_si_histo->SetLineColor(kBlue);
+
   det_bool_rec_si_histo = new TH1F("Rec layer total (Si)", "Rec layer total (Si)", 47,0,47);
   det_bool_rec_si_histo->SetLineColor(kRed);
+
   det_bool_lc_si_histo = new TH1F("LC layer total (Si)", "LC layer total (Si)", 47,0,47);
   det_bool_lc_si_histo->SetLineColor(kGreen);
 
+
   det_bool_sim_sc_histo = new TH1F("Sim layer total (Sc)", "Sim layer total (Sc)", 47,0,47);
   det_bool_sim_sc_histo->SetLineColor(kBlue);
+
   det_bool_rec_sc_histo = new TH1F("Rec layer total (Sc)", "Rec layer total (Sc)", 47,0,47);
   det_bool_rec_sc_histo->SetLineColor(kRed);
+
   det_bool_lc_sc_histo = new TH1F("LC layer total (Sc)", "LC layer total (Sc)", 47,0,47);
   det_bool_lc_sc_histo->SetLineColor(kGreen);
+
 
   // Connectivity Plots
 
@@ -446,6 +486,30 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_w_lc_sc_histo = new TH1F("LC Weighted Connectivity (Sc)", "LC Weighted Connectivity (Sc)", 47,0,47);
   connectivity_w_rec_sc_histo = new TH1F("Rechit Weighted Connectivity (Sc)", "Rechit Weighted Connectivity (Sc)", 47,0,47);
   connectivity_w_sim_sc_histo = new TH1F("Simhit Weighted Connectivity (Sc)", "Simhit Weighted Connectivity (Sc)", 47,0,47);
+
+  connectivity_max_lc_histo = new TH1F("LC Max Connectivity", "LC Max Connectivity", 47,0,47);
+  connectivity_max_rec_histo = new TH1F("Rechit Max Connectivity", "Rechit Max Connectivity", 47,0,47);
+  connectivity_max_sim_histo = new TH1F("Simhit Max Connectivity", "Simhit Max Connectivity", 47,0,47);
+
+  connectivity_max_lc_si_histo = new TH1F("LC Max Connectivity (Si)", "LC Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_rec_si_histo = new TH1F("Rechit Max Connectivity (Si)", "Rechit Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_sim_si_histo = new TH1F("Simhit Max Connectivity (Si)", "Simhit Max Connectivity (Sc)", 47,0,47);
+
+  connectivity_max_lc_sc_histo = new TH1F("LC Max Connectivity (Sc)", "LC Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_rec_sc_histo = new TH1F("Rechit Max Connectivity (Sc)", "Rechit Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_sim_sc_histo = new TH1F("Simhit Max Connectivity (Sc)", "Simhit Max Connectivity (Sc)", 47,0,47);
+
+  connectivity_skip_lc_histo = new TH1F("LC Skip Connectivity", "LC Skip Connectivity", 47,0,47);
+  connectivity_skip_rec_histo = new TH1F("Rechit Skip Connectivity", "Rechit Skip Connectivity", 47,0,47);
+  connectivity_skip_sim_histo = new TH1F("Simhit Skip Connectivity", "Simhit Skip Connectivity", 47,0,47);
+
+  connectivity_skip_lc_si_histo = new TH1F("LC Skip Connectivity (Si)", "LC Skip Connectivity (Sc)", 47,0,47);
+  connectivity_skip_rec_si_histo = new TH1F("Rechit Skip Connectivity (Si)", "Rechit Skip Connectivity (Sc)", 47,0,47);
+  connectivity_skip_sim_si_histo = new TH1F("Simhit Skip Connectivity (Si)", "Simhit Skip Connectivity (Sc)", 47,0,47);
+
+  connectivity_skip_lc_sc_histo = new TH1F("LC Skip Connectivity (Sc)", "LC Skip Connectivity (Sc)", 47,0,47);
+  connectivity_skip_rec_sc_histo = new TH1F("Rechit Skip Connectivity (Sc)", "Rechit Skip Connectivity (Sc)", 47,0,47);
+  connectivity_skip_sim_sc_histo = new TH1F("Simhit Skip Connectivity (Sc)", "Simhit Skip Connectivity (Sc)", 47,0,47);
 
 
   // Distance Plots
@@ -604,6 +668,81 @@ EfficiencyStudies::~EfficiencyStudies() {
   hists = {connectivity_sim_sc_histo, connectivity_rec_sc_histo, connectivity_lc_sc_histo};
   createTHSPlot(c1, colors, hists, "Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Scintillator Connectivity");
   c1->SetLogy(0);
+
+
+  // Max
+
+
+  createTH1Plot(c1, connectivity_max_lc_histo,"Max_Connectivity_LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_histo,"Max_Connectivity_RecCluster.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_histo,"Max_Connectivity_SimCluster.png", axes, folder);
+
+  connectivity_max_lc_histo ->SetStats(0);
+  connectivity_max_rec_histo ->SetStats(0);
+  connectivity_max_sim_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_histo, connectivity_max_rec_histo, connectivity_max_lc_histo};
+  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack.png", axes, legend, pos, folder, "Max Total Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_si_histo,"Max_Connectivity_LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_si_histo,"Max_Connectivity_RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_si_histo,"Max_Connectivity_SimCluster_Si.png", axes, folder);
+
+  connectivity_max_lc_si_histo ->SetStats(0);
+  connectivity_max_rec_si_histo ->SetStats(0);
+  connectivity_max_sim_si_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_si_histo, connectivity_max_rec_si_histo, connectivity_max_lc_si_histo};
+  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack_Si.png", axes, legend, pos, folder, "Max Si Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_sc_histo,"Max_Connectivity_LC_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_sc_histo,"Max_Connectivity_RecCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_sc_histo,"Max_Connectivity_SimCluster_Sc.png", axes, folder);
+
+  connectivity_max_lc_sc_histo ->SetStats(0);
+  connectivity_max_rec_sc_histo ->SetStats(0);
+  connectivity_max_sim_sc_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_lc_sc_histo};
+  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Max Scintillator Connectivity");
+
+  // Skip
+
+
+  createTH1Plot(c1, connectivity_skip_lc_histo,"Skip_Connectivity_LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_histo,"Skip_Connectivity_RecCluster.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_histo,"Skip_Connectivity_SimCluster.png", axes, folder);
+
+  connectivity_skip_lc_histo ->SetStats(0);
+  connectivity_skip_rec_histo ->SetStats(0);
+  connectivity_skip_sim_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_histo, connectivity_skip_rec_histo, connectivity_skip_lc_histo};
+  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack.png", axes, legend, pos, folder, "Skip Total Connectivity");
+
+  createTH1Plot(c1, connectivity_skip_lc_si_histo,"Skip_Connectivity_LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_si_histo,"Skip_Connectivity_RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_si_histo,"Skip_Connectivity_SimCluster_Si.png", axes, folder);
+
+  connectivity_skip_lc_si_histo ->SetStats(0);
+  connectivity_skip_rec_si_histo ->SetStats(0);
+  connectivity_skip_sim_si_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
+  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
+
+  createTH1Plot(c1, connectivity_skip_lc_sc_histo,"Skip_Connectivity_LC_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_sc_histo,"Skip_Connectivity_RecCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_sc_histo,"Skip_Connectivity_SimCluster_Sc.png", axes, folder);
+
+  connectivity_skip_lc_sc_histo ->SetStats(0);
+  connectivity_skip_rec_sc_histo ->SetStats(0);
+  connectivity_skip_sim_sc_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_lc_sc_histo};
+  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Skip Scintillator Connectivity");
+
+  // Weighted
 
   axes = {"Layer", "Weighted Connectivity Score"};
 
@@ -802,6 +941,18 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int nRechits = 0;
   int nLChits = 0;
 
+  std::vector<int> hit_layer_sim(47,0);
+  std::vector<int> hit_layer_sim_si(47,0);
+  std::vector<int> hit_layer_sim_sc(47,0);
+  std::vector<int> hit_layer_rec(47,0);
+  std::vector<int> hit_layer_rec_si(47,0);
+  std::vector<int> hit_layer_rec_sc(47,0);
+  std::vector<int> hit_layer_lc(47,0);
+  std::vector<int> hit_layer_lc_si(47,0);
+  std::vector<int> hit_layer_lc_sc(47,0);
+
+  /*
+
   for(int i=0;i<47;i++){
     hit_layer_sim[i]=0;
     hit_layer_sim_si[i]=0;
@@ -815,6 +966,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     hit_layer_lc_si[i]=0;
     hit_layer_lc_sc[i]=0;
     }
+
+  */
 
   std::vector<double> temp_simhits(47,0);
   std::vector<double> temp_rechits(47,0);
@@ -959,7 +1112,74 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int reccluster_sc_connectivity_counter = 0;
   int simcluster_sc_connectivity_counter = 0;
 
-  for(int i=0;i<47;i++){
+  int max_lc_connectivity_counter = 0;
+  int max_reccluster_connectivity_counter = 0;
+  int max_simcluster_connectivity_counter = 0;
+
+  int max_lc_si_connectivity_counter = 0;
+  int max_reccluster_si_connectivity_counter = 0;
+  int max_simcluster_si_connectivity_counter = 0;
+
+  int max_lc_sc_connectivity_counter = 0;
+  int max_reccluster_sc_connectivity_counter = 0;
+  int max_simcluster_sc_connectivity_counter = 0;
+
+  int skip_lc_connectivity_counter = 0;
+  int skip_reccluster_connectivity_counter = 0;
+  int skip_simcluster_connectivity_counter = 0;
+
+  int skip_lc_si_connectivity_counter = 0;
+  int skip_reccluster_si_connectivity_counter = 0;
+  int skip_simcluster_si_connectivity_counter = 0;
+
+  int skip_lc_sc_connectivity_counter = 0;
+  int skip_reccluster_sc_connectivity_counter = 0;
+  int skip_simcluster_sc_connectivity_counter = 0;
+
+  int skip = 1;
+
+  std::vector<int> skip_counters(9,0);
+
+
+  std::vector<int> connectivity_counters = {lc_connectivity_counter, reccluster_connectivity_counter, simcluster_connectivity_counter,
+                               lc_si_connectivity_counter, reccluster_si_connectivity_counter, simcluster_si_connectivity_counter,
+                               lc_sc_connectivity_counter, reccluster_sc_connectivity_counter, simcluster_sc_connectivity_counter};
+
+  std::vector<int> connectivity_max_counters = {max_lc_connectivity_counter, max_reccluster_connectivity_counter, max_simcluster_connectivity_counter,
+                                   max_lc_si_connectivity_counter, max_reccluster_si_connectivity_counter, max_simcluster_si_connectivity_counter,
+                                   max_lc_sc_connectivity_counter, max_reccluster_sc_connectivity_counter, max_simcluster_sc_connectivity_counter};
+
+  std::vector<int> connectivity_skip_counters = {skip_lc_connectivity_counter, skip_reccluster_connectivity_counter, skip_simcluster_connectivity_counter,
+                               skip_lc_si_connectivity_counter, skip_reccluster_si_connectivity_counter, skip_simcluster_si_connectivity_counter,
+                               skip_lc_sc_connectivity_counter, skip_reccluster_sc_connectivity_counter, skip_simcluster_sc_connectivity_counter};
+
+
+  std::vector<TH1F*> connectivity_histos = {connectivity_lc_histo, connectivity_rec_histo, connectivity_sim_histo,
+                               connectivity_lc_si_histo, connectivity_rec_si_histo, connectivity_sim_si_histo,
+                               connectivity_lc_sc_histo, connectivity_rec_sc_histo, connectivity_sim_sc_histo};
+
+  std::vector<TH1F*> connectivity_w_histos = {connectivity_w_lc_histo, connectivity_w_rec_histo, connectivity_w_sim_histo,
+                               connectivity_w_lc_si_histo, connectivity_w_rec_si_histo, connectivity_w_sim_si_histo,
+                               connectivity_w_lc_sc_histo, connectivity_w_rec_sc_histo, connectivity_w_sim_sc_histo};
+
+  std::vector<TH1F*> connectivity_max_histos = {connectivity_max_lc_histo, connectivity_max_rec_histo, connectivity_max_sim_histo,
+                               connectivity_max_lc_si_histo, connectivity_max_rec_si_histo, connectivity_max_sim_si_histo,
+                               connectivity_max_lc_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_sim_sc_histo};
+
+  std::vector<TH1F*> connectivity_skip_histos = {connectivity_skip_lc_histo, connectivity_skip_rec_histo, connectivity_skip_sim_histo,
+                               connectivity_skip_lc_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_sim_si_histo,
+                               connectivity_skip_lc_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_sim_sc_histo};
+
+  std::vector<TH1F*> det_bool_histos = {det_bool_lc_histo, det_bool_rec_histo, det_bool_sim_histo,
+                               det_bool_lc_si_histo, det_bool_rec_si_histo, det_bool_sim_si_histo,
+                               det_bool_lc_sc_histo, det_bool_rec_sc_histo, det_bool_sim_sc_histo};
+
+  std::vector<std::vector<int>> hit_layer_counters = {hit_layer_lc, hit_layer_rec, hit_layer_sim,
+                               hit_layer_lc_si, hit_layer_rec_si, hit_layer_sim_si,
+                               hit_layer_lc_sc, hit_layer_rec_sc, hit_layer_sim_sc};
+
+
+  for(int i=0; i<47;i++){
     
     hit_layer_sim_histo[i]->Fill(hit_layer_sim[i]);
     hit_layer_rec_histo[i]->Fill(hit_layer_rec[i]);
@@ -985,6 +1205,47 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     det_lc_si_histo->Fill(i,hit_layer_lc_si[i]);
     det_lc_sc_histo->Fill(i,hit_layer_lc_sc[i]);
 
+    // Loop through the different counters for the various connectivity scores and fill the histograms
+
+    for(unsigned j=0; j<connectivity_counters.size();j++){
+
+      if(hit_layer_counters[j][i]!=0){
+        det_bool_histos[j]->Fill(i);
+        connectivity_counters[j]++;
+        connectivity_skip_counters[j]++;
+        if(i==46){
+          connectivity_histos[j]->Fill(connectivity_counters[j]);
+          connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+          if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+          connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+          for(int k=i+1-connectivity_counters[j];k<i+1;k++){
+            connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
+          }
+        }
+      }
+
+      else{
+        if(skip_counters[j] < skip){
+          skip_counters[j]++;
+          connectivity_skip_counters[j]++;
+        }
+        else{
+          connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+          skip_counters[j] = 0;
+          connectivity_skip_counters[j] = 0;
+        }
+        connectivity_histos[j]->Fill(connectivity_counters[j]);
+        for(int k=i-connectivity_counters[j]; k<i;k++){
+          connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
+        }
+        if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+        connectivity_counters[j]=0;
+      }
+    }
+
+
+    /*
+
     // Create Plots for Simhits 
 
     // Silicon
@@ -994,6 +1255,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       simcluster_si_connectivity_counter++;
       if (i==46){
         connectivity_sim_si_histo->Fill(simcluster_si_connectivity_counter);
+        if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
+        connectivity_max_sim_si_histo->Fill(max_simcluster_si_connectivity_counter);
         for(int j=i+1-simcluster_si_connectivity_counter; j<i+1;j++){
           connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
         }
@@ -1004,6 +1267,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-simcluster_si_connectivity_counter; j<i;j++){
         connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
       }
+      if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
       simcluster_si_connectivity_counter = 0;
     }
 
@@ -1014,6 +1278,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       simcluster_sc_connectivity_counter++;
       if (i==46){
         connectivity_sim_sc_histo->Fill(simcluster_sc_connectivity_counter);
+        if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
+        connectivity_max_sim_sc_histo->Fill(max_simcluster_sc_connectivity_counter);
         for(int j=i+1-simcluster_sc_connectivity_counter; j<i+1;j++){
           connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
         }
@@ -1024,6 +1290,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-simcluster_sc_connectivity_counter; j<i;j++){
         connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
       }
+      if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
       simcluster_sc_connectivity_counter = 0;
     }
 
@@ -1034,6 +1301,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       simcluster_connectivity_counter++;
       if (i==46){
         connectivity_sim_histo->Fill(simcluster_connectivity_counter);
+        if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
+        connectivity_max_sim_histo->Fill(max_simcluster_connectivity_counter);
         for(int j=i+1-simcluster_connectivity_counter; j<i+1;j++){
           connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
         }
@@ -1044,6 +1313,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-simcluster_connectivity_counter; j<i;j++){
         connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
       }
+      if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
       simcluster_connectivity_counter = 0;
     }
 
@@ -1056,6 +1326,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       reccluster_si_connectivity_counter++;
       if (i==46){
         connectivity_rec_si_histo->Fill(reccluster_si_connectivity_counter);
+        if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
+        connectivity_max_rec_si_histo->Fill(max_reccluster_si_connectivity_counter);
         for(int j=i+1-reccluster_si_connectivity_counter; j<i+1;j++){
           connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
         }
@@ -1066,6 +1338,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-reccluster_si_connectivity_counter; j<i;j++){
         connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
       }
+      if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
       reccluster_si_connectivity_counter = 0;
     }
 
@@ -1076,6 +1349,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       reccluster_sc_connectivity_counter++;
       if (i==46){
         connectivity_rec_sc_histo->Fill(reccluster_sc_connectivity_counter);
+        if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
+        connectivity_max_rec_sc_histo->Fill(max_reccluster_sc_connectivity_counter);
         for(int j=i+1-reccluster_sc_connectivity_counter; j<i+1;j++){
           connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
         }
@@ -1086,6 +1361,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-reccluster_sc_connectivity_counter; j<i;j++){
         connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
       }
+      if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
       reccluster_sc_connectivity_counter = 0;
     }
     
@@ -1096,6 +1372,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       reccluster_connectivity_counter++;
       if (i==46){
         connectivity_rec_histo->Fill(reccluster_connectivity_counter);
+        if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
+        connectivity_max_rec_histo->Fill(max_reccluster_connectivity_counter);
         for(int j=i+1-reccluster_connectivity_counter; j<i+1;j++){
           connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
         }
@@ -1106,16 +1384,21 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-reccluster_connectivity_counter; j<i;j++){
         connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
       }
+      if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
       reccluster_connectivity_counter = 0;
     }
 
     // Create Plots for LC
+
+    // Si
 
     if (hit_layer_lc_si[i]!=0){
       det_bool_lc_si_histo->Fill(i);
       lc_si_connectivity_counter++;
       if (i==46){
         connectivity_lc_si_histo->Fill(lc_si_connectivity_counter);
+        if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
+        connectivity_max_lc_si_histo->Fill(max_lc_si_connectivity_counter);
         for(int j=i+1-lc_si_connectivity_counter; j<i+1;j++){
           connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
           }
@@ -1126,14 +1409,19 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-lc_si_connectivity_counter; j<i;j++){
         connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
         }
+      if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
       lc_si_connectivity_counter = 0;
       }
+
+    // Scintillator
 
     if (hit_layer_lc_sc[i]!=0){
       det_bool_lc_sc_histo->Fill(i);
       lc_sc_connectivity_counter++;
       if (i==46){
         connectivity_lc_sc_histo->Fill(lc_sc_connectivity_counter);
+        if (max_lc_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_lc_sc_connectivity_counter = lc_sc_connectivity_counter;}
+        connectivity_max_lc_sc_histo->Fill(max_lc_sc_connectivity_counter);
         for(int j=i+1-lc_sc_connectivity_counter; j<i+1;j++){
           connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
           }
@@ -1144,6 +1432,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-lc_sc_connectivity_counter; j<i;j++){
         connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
         }
+      if (max_lc_sc_connectivity_counter < lc_sc_connectivity_counter){max_lc_si_connectivity_counter = lc_sc_connectivity_counter;}
       lc_sc_connectivity_counter = 0;
       }
 
@@ -1153,6 +1442,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       lc_connectivity_counter++;
       if (i==46){
         connectivity_lc_histo->Fill(lc_connectivity_counter);
+        if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
+        connectivity_max_lc_histo->Fill(max_lc_connectivity_counter);
         for(int j=i+1-lc_connectivity_counter; j<i+1;j++){
           connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
           }
@@ -1163,8 +1454,11 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for(int j=i-lc_connectivity_counter; j<i;j++){
         connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
         }
+      if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
       lc_connectivity_counter = 0;
       }
+
+    */
     }
 
   tree->Fill();
