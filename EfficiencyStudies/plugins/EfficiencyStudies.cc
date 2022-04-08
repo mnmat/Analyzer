@@ -127,6 +127,8 @@ private:
 
   TTree *tree = new TTree("tree","tree");
   // double trackPtMin_; 
+  int skip_;
+  std::string eta_;
 
   // Validate Particles
 
@@ -222,6 +224,19 @@ private:
   TH1F* connectivity_max_sim_sc_histo;
   TH1F* connectivity_max_rec_sc_histo;
 
+  TH1F* connectivity_miss_lc_histo;
+  TH1F* connectivity_miss_sim_histo;
+  TH1F* connectivity_miss_rec_histo;
+
+  TH1F* connectivity_miss_lc_si_histo;
+  TH1F* connectivity_miss_sim_si_histo;
+  TH1F* connectivity_miss_rec_si_histo;
+
+  TH1F* connectivity_miss_lc_sc_histo;
+  TH1F* connectivity_miss_sim_sc_histo;
+  TH1F* connectivity_miss_rec_sc_histo;
+
+
   TH1F* connectivity_skip_lc_histo;
   TH1F* connectivity_skip_sim_histo;
   TH1F* connectivity_skip_rec_histo;
@@ -269,7 +284,9 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       hgcalRecHitsBHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsBH"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
       // trackPtMin_(iConfig.getParameter<double>("trackPtMin")), 
-      caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()){
+      caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
+      skip_(iConfig.getParameter<int>("skip")),
+      eta_(iConfig.getParameter<std::string>("eta")){
 
 
 
@@ -330,24 +347,30 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   val_particle__sim_histo = new TH1F("Simclusters","Simclusters",5,0,5);
   val_particle__sim_histo->SetLineColor(kBlue);
+//  val_particle__sim_histo->SetLineStyle(1);
 
   val_particle__rec_histo = new TH1F("Recclusters","Recclusters",500,0,500);
   val_particle__rec_histo->SetLineColor(kRed);
+//  val_particle__rec_histo->SetLineStyle(2);
 
   val_particle__lc_histo = new TH1F("LCs","LCs",500,0,500);
   val_particle__lc_histo->SetLineColor(kGreen);
+//  val_particle__lc_histo->SetLineStyle(7);
 
 
   // Hit Plots
 
   hit_sim_histo = new TH1F("Simhits","Simhits",500,0,500);
   hit_sim_histo->SetLineColor(kBlue);
+//  hit_sim_histo->SetLineStyle(1);
 
   hit_rec_histo = new TH1F("Rechits","Rechits",500,0,500);
   hit_rec_histo->SetLineColor(kRed);
+//  hit_rec_histo->SetLineStyle(2);
 
   hit_lc_histo = new TH1F("LChits","LChits",500,0,500);
   hit_lc_histo->SetLineColor(kGreen);
+//  hit_lc_histo->SetLineStyle(7);
 
 
   for(int i=0;i<47;i++){
@@ -370,16 +393,19 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     t_name = sim_branch;
     hit_layer_sim_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_histo[i]->SetLineStyle(1);
 
 
     t_name = rec_branch;
     hit_layer_rec_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_histo[i]->SetLineStyle(2);
 
 
     t_name = lc_branch;
     hit_layer_lc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_histo[i]->SetLineStyle(7);
 
 
     // Si hits
@@ -387,16 +413,19 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     t_name = sim_branch+"_si";
     hit_layer_sim_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_si_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_si_histo[i]->SetLineStyle(1);
 
 
     t_name = rec_branch+"_si";
     hit_layer_rec_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_si_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_si_histo[i]->SetLineStyle(2);
 
 
     t_name = lc_branch+"_si";
     hit_layer_lc_si_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_si_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_si_histo[i]->SetLineStyle(7);
 
 
     // Scintillator hits
@@ -404,16 +433,19 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     t_name = sim_branch+"_sc";
     hit_layer_sim_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_sim_sc_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_sc_histo[i]->SetLineStyle(1);
 
 
     t_name = rec_branch+"_sc";
     hit_layer_rec_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_rec_sc_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_sc_histo[i]->SetLineStyle(2);
 
 
     t_name = lc_branch+"_sc";
     hit_layer_lc_sc_histo[i] = new TH1F(t_name,t_name,20,0,20);
     hit_layer_lc_sc_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_sc_histo[i]->SetLineStyle(7);
 
   }
 
@@ -433,83 +465,104 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   det_bool_sim_histo = new TH1F("Sim layer total", "Sim layer total", 47,0,47);
   det_bool_sim_histo->SetLineColor(kBlue);
+//  det_bool_sim_histo->SetLineStyle(1);
 
   det_bool_rec_histo = new TH1F("Rec layer total", "Rec layer total", 47,0,47);
   det_bool_rec_histo->SetLineColor(kRed);
+//  det_bool_rec_histo->SetLineStyle(2);
 
   det_bool_lc_histo = new TH1F("LC layer total", "LC layer total", 47,0,47);
   det_bool_lc_histo->SetLineColor(kGreen);
+//  det_bool_lc_histo->SetLineStyle(7);
 
 
   det_bool_sim_si_histo = new TH1F("Sim layer total (Si)", "Sim layer total (Si)", 47,0,47);
   det_bool_sim_si_histo->SetLineColor(kBlue);
+//  det_bool_sim_si_histo->SetLineStyle(1);
 
   det_bool_rec_si_histo = new TH1F("Rec layer total (Si)", "Rec layer total (Si)", 47,0,47);
   det_bool_rec_si_histo->SetLineColor(kRed);
+//  det_bool_rec_si_histo->SetLineStyle(2);
 
   det_bool_lc_si_histo = new TH1F("LC layer total (Si)", "LC layer total (Si)", 47,0,47);
   det_bool_lc_si_histo->SetLineColor(kGreen);
+//  det_bool_lc_si_histo->SetLineStyle(7);
 
 
   det_bool_sim_sc_histo = new TH1F("Sim layer total (Sc)", "Sim layer total (Sc)", 47,0,47);
   det_bool_sim_sc_histo->SetLineColor(kBlue);
+//  det_bool_sim_sc_histo->SetLineStyle(1);
 
   det_bool_rec_sc_histo = new TH1F("Rec layer total (Sc)", "Rec layer total (Sc)", 47,0,47);
   det_bool_rec_sc_histo->SetLineColor(kRed);
+//  det_bool_rec_sc_histo->SetLineStyle(2);
 
   det_bool_lc_sc_histo = new TH1F("LC layer total (Sc)", "LC layer total (Sc)", 47,0,47);
   det_bool_lc_sc_histo->SetLineColor(kGreen);
+//  det_bool_lc_sc_histo->SetLineStyle(7);
 
 
   // Connectivity Plots
 
-  connectivity_lc_histo = new TH1F("LC Connectivity", "LC Connectivity", 47,0,47);
-  connectivity_rec_histo = new TH1F("Rechit Connectivity", "Rechit Connectivity", 47,0,47);
-  connectivity_sim_histo = new TH1F("Simhit Connectivity", "Simhit Connectivity", 47,0,47);
+  connectivity_lc_histo = new TH1F("LC Connectivity", "LC Connectivity", 48,0,48);
+  connectivity_rec_histo = new TH1F("Rechit Connectivity", "Rechit Connectivity", 48,0,48);
+  connectivity_sim_histo = new TH1F("Simhit Connectivity", "Simhit Connectivity", 48,0,48);
 
-  connectivity_lc_si_histo = new TH1F("LC Connectivity (Si)", "LC Connectivity (Si)", 47,0,47);
-  connectivity_rec_si_histo = new TH1F("Rechit Connectivity (Si)", "Rechit Connectivity (Si)", 47,0,47);
-  connectivity_sim_si_histo = new TH1F("Simhit Connectivity (Si)", "Simhit Connectivity (Si)", 47,0,47);
+  connectivity_lc_si_histo = new TH1F("LC Connectivity (Si)", "LC Connectivity (Si)", 48,0,48);
+  connectivity_rec_si_histo = new TH1F("Rechit Connectivity (Si)", "Rechit Connectivity (Si)", 48,0,48);
+  connectivity_sim_si_histo = new TH1F("Simhit Connectivity (Si)", "Simhit Connectivity (Si)", 48,0,48);
 
-  connectivity_lc_sc_histo = new TH1F("LC Connectivity (Sc)", "LC Connectivity (Sc)", 47,0,47);
-  connectivity_rec_sc_histo = new TH1F("Rechit Connectivity (Sc)", "Rechit Connectivity (Sc)", 47,0,47);
-  connectivity_sim_sc_histo = new TH1F("Simhit Connectivity (Sc)", "Simhit Connectivity (Sc)", 47,0,47);
+  connectivity_lc_sc_histo = new TH1F("LC Connectivity (Sc)", "LC Connectivity (Sc)", 48,0,48);
+  connectivity_rec_sc_histo = new TH1F("Rechit Connectivity (Sc)", "Rechit Connectivity (Sc)", 48,0,48);
+  connectivity_sim_sc_histo = new TH1F("Simhit Connectivity (Sc)", "Simhit Connectivity (Sc)", 48,0,48);
 
-  connectivity_w_lc_histo = new TH1F("LC Weighted Connectivity", "LC Weighted Connectivity", 47,0,47);
-  connectivity_w_rec_histo = new TH1F("Rechit Weighted Connectivity", "Rechit Weighted Connectivity", 47,0,47);
-  connectivity_w_sim_histo = new TH1F("Simhit Weighted Connectivity", "Simhit Weighted Connectivity", 47,0,47);
+  connectivity_w_lc_histo = new TH1F("LC Weighted Connectivity", "LC Weighted Connectivity", 48,0,48);
+  connectivity_w_rec_histo = new TH1F("Rechit Weighted Connectivity", "Rechit Weighted Connectivity", 48,0,48);
+  connectivity_w_sim_histo = new TH1F("Simhit Weighted Connectivity", "Simhit Weighted Connectivity", 48,0,48);
 
-  connectivity_w_lc_si_histo = new TH1F("LC Weighted Connectivity (Si)", "LC Weighted Connectivity (Sc)", 47,0,47);
-  connectivity_w_rec_si_histo = new TH1F("Rechit Weighted Connectivity (Si)", "Rechit Weighted Connectivity (Sc)", 47,0,47);
-  connectivity_w_sim_si_histo = new TH1F("Simhit Weighted Connectivity (Si)", "Simhit Weighted Connectivity (Sc)", 47,0,47);
+  connectivity_w_lc_si_histo = new TH1F("LC Weighted Connectivity (Si)", "LC Weighted Connectivity (Sc)", 48,0,48);
+  connectivity_w_rec_si_histo = new TH1F("Rechit Weighted Connectivity (Si)", "Rechit Weighted Connectivity (Sc)", 48,0,48);
+  connectivity_w_sim_si_histo = new TH1F("Simhit Weighted Connectivity (Si)", "Simhit Weighted Connectivity (Sc)", 48,0,48);
 
-  connectivity_w_lc_sc_histo = new TH1F("LC Weighted Connectivity (Sc)", "LC Weighted Connectivity (Sc)", 47,0,47);
-  connectivity_w_rec_sc_histo = new TH1F("Rechit Weighted Connectivity (Sc)", "Rechit Weighted Connectivity (Sc)", 47,0,47);
-  connectivity_w_sim_sc_histo = new TH1F("Simhit Weighted Connectivity (Sc)", "Simhit Weighted Connectivity (Sc)", 47,0,47);
+  connectivity_w_lc_sc_histo = new TH1F("LC Weighted Connectivity (Sc)", "LC Weighted Connectivity (Sc)", 48,0,48);
+  connectivity_w_rec_sc_histo = new TH1F("Rechit Weighted Connectivity (Sc)", "Rechit Weighted Connectivity (Sc)", 48,0,48);
+  connectivity_w_sim_sc_histo = new TH1F("Simhit Weighted Connectivity (Sc)", "Simhit Weighted Connectivity (Sc)", 48,0,48);
 
-  connectivity_max_lc_histo = new TH1F("LC Max Connectivity", "LC Max Connectivity", 47,0,47);
-  connectivity_max_rec_histo = new TH1F("Rechit Max Connectivity", "Rechit Max Connectivity", 47,0,47);
-  connectivity_max_sim_histo = new TH1F("Simhit Max Connectivity", "Simhit Max Connectivity", 47,0,47);
+  connectivity_max_lc_histo = new TH1F("LC Max Connectivity", "LC Max Connectivity", 48,0,48);
+  connectivity_max_rec_histo = new TH1F("Rechit Max Connectivity", "Rechit Max Connectivity", 48,0,48);
+  connectivity_max_sim_histo = new TH1F("Simhit Max Connectivity", "Simhit Max Connectivity", 48,0,48);
 
-  connectivity_max_lc_si_histo = new TH1F("LC Max Connectivity (Si)", "LC Max Connectivity (Sc)", 47,0,47);
-  connectivity_max_rec_si_histo = new TH1F("Rechit Max Connectivity (Si)", "Rechit Max Connectivity (Sc)", 47,0,47);
-  connectivity_max_sim_si_histo = new TH1F("Simhit Max Connectivity (Si)", "Simhit Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_lc_si_histo = new TH1F("LC Max Connectivity (Si)", "LC Max Connectivity (Si)", 48,0,48);
+  connectivity_max_rec_si_histo = new TH1F("Rechit Max Connectivity (Si)", "Rechit Max Connectivity (Si)", 48,0,48);
+  connectivity_max_sim_si_histo = new TH1F("Simhit Max Connectivity (Si)", "Simhit Max Connectivity (Si)", 48,0,48);
 
-  connectivity_max_lc_sc_histo = new TH1F("LC Max Connectivity (Sc)", "LC Max Connectivity (Sc)", 47,0,47);
-  connectivity_max_rec_sc_histo = new TH1F("Rechit Max Connectivity (Sc)", "Rechit Max Connectivity (Sc)", 47,0,47);
-  connectivity_max_sim_sc_histo = new TH1F("Simhit Max Connectivity (Sc)", "Simhit Max Connectivity (Sc)", 47,0,47);
+  connectivity_max_lc_sc_histo = new TH1F("LC Max Connectivity (Sc)", "LC Max Connectivity (Sc)", 48,0,48);
+  connectivity_max_rec_sc_histo = new TH1F("Rechit Max Connectivity (Sc)", "Rechit Max Connectivity (Sc)", 48,0,48);
+  connectivity_max_sim_sc_histo = new TH1F("Simhit Max Connectivity (Sc)", "Simhit Max Connectivity (Sc)", 48,0,48);
 
-  connectivity_skip_lc_histo = new TH1F("LC Skip Connectivity", "LC Skip Connectivity", 47,0,47);
-  connectivity_skip_rec_histo = new TH1F("Rechit Skip Connectivity", "Rechit Skip Connectivity", 47,0,47);
-  connectivity_skip_sim_histo = new TH1F("Simhit Skip Connectivity", "Simhit Skip Connectivity", 47,0,47);
+  connectivity_miss_lc_histo = new TH1F("LC Miss Connectivity", "LC Miss Connectivity", 48,0,48);
+  connectivity_miss_rec_histo = new TH1F("Rechit Miss Connectivity", "Rechit Miss Connectivity", 48,0,48);
+  connectivity_miss_sim_histo = new TH1F("Simhit Miss Connectivity", "Simhit Miss Connectivity", 48,0,48);
 
-  connectivity_skip_lc_si_histo = new TH1F("LC Skip Connectivity (Si)", "LC Skip Connectivity (Sc)", 47,0,47);
-  connectivity_skip_rec_si_histo = new TH1F("Rechit Skip Connectivity (Si)", "Rechit Skip Connectivity (Sc)", 47,0,47);
-  connectivity_skip_sim_si_histo = new TH1F("Simhit Skip Connectivity (Si)", "Simhit Skip Connectivity (Sc)", 47,0,47);
+  connectivity_miss_lc_si_histo = new TH1F("LC Miss Connectivity (Si)", "LC Miss Connectivity (Si)", 48,0,48);
+  connectivity_miss_rec_si_histo = new TH1F("Rechit Miss Connectivity (Si)", "Rechit Miss Connectivity (Si)", 48,0,48);
+  connectivity_miss_sim_si_histo = new TH1F("Simhit Miss Connectivity (Si)", "Simhit Miss Connectivity (Si)", 48,0,48);
 
-  connectivity_skip_lc_sc_histo = new TH1F("LC Skip Connectivity (Sc)", "LC Skip Connectivity (Sc)", 47,0,47);
-  connectivity_skip_rec_sc_histo = new TH1F("Rechit Skip Connectivity (Sc)", "Rechit Skip Connectivity (Sc)", 47,0,47);
-  connectivity_skip_sim_sc_histo = new TH1F("Simhit Skip Connectivity (Sc)", "Simhit Skip Connectivity (Sc)", 47,0,47);
+  connectivity_miss_lc_sc_histo = new TH1F("LC Miss Connectivity (Sc)", "LC Miss Connectivity (Sc)", 48,0,48);
+  connectivity_miss_rec_sc_histo = new TH1F("Rechit Miss Connectivity (Sc)", "Rechit Miss Connectivity (Sc)", 48,0,48);
+  connectivity_miss_sim_sc_histo = new TH1F("Simhit Miss Connectivity (Sc)", "Simhit Miss Connectivity (Sc)", 48,0,48);
+
+  connectivity_skip_lc_histo = new TH1F("LC Skip Connectivity", "LC Skip Connectivity", 48,0,48);
+  connectivity_skip_rec_histo = new TH1F("Rechit Skip Connectivity", "Rechit Skip Connectivity", 48,0,48);
+  connectivity_skip_sim_histo = new TH1F("Simhit Skip Connectivity", "Simhit Skip Connectivity", 48,0,48);
+
+  connectivity_skip_lc_si_histo = new TH1F("LC Skip Connectivity (Si)", "LC Skip Connectivity (Sc)", 48,0,48);
+  connectivity_skip_rec_si_histo = new TH1F("Rechit Skip Connectivity (Si)", "Rechit Skip Connectivity (Si)", 48,0,48);
+  connectivity_skip_sim_si_histo = new TH1F("Simhit Skip Connectivity (Si)", "Simhit Skip Connectivity (Si)", 48,0,48);
+
+  connectivity_skip_lc_sc_histo = new TH1F("LC Skip Connectivity (Sc)", "LC Skip Connectivity (Sc)", 48,0,48);
+  connectivity_skip_rec_sc_histo = new TH1F("Rechit Skip Connectivity (Sc)", "Rechit Skip Connectivity (Sc)", 48,0,48);
+  connectivity_skip_sim_sc_histo = new TH1F("Simhit Skip Connectivity (Sc)", "Simhit Skip Connectivity (Sc)", 48,0,48);
 
 
   // Distance Plots
@@ -534,7 +587,7 @@ EfficiencyStudies::~EfficiencyStudies() {
   TCanvas *c1 = new TCanvas("c1","c1"); // Is dynamic memory allocation necessary?
 
   std::vector<int> colors = {1, 4, 2};
-  TString folder = "/eos/user/m/mmatthew/www/test_plots/";
+  TString folder = "/eos/user/m/mmatthew/www/Analyzer/Eta_"+eta_+"/";
   std::vector<float> pos = {0.60,0.70,0.9,0.9};
 
   // Validation Plots
@@ -667,80 +720,119 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   hists = {connectivity_sim_sc_histo, connectivity_rec_sc_histo, connectivity_lc_sc_histo};
   createTHSPlot(c1, colors, hists, "Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Scintillator Connectivity");
-  c1->SetLogy(0);
-
-
-  // Max
-
-
-  createTH1Plot(c1, connectivity_max_lc_histo,"Max_Connectivity_LC.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_rec_histo,"Max_Connectivity_RecCluster.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_sim_histo,"Max_Connectivity_SimCluster.png", axes, folder);
-
-  connectivity_max_lc_histo ->SetStats(0);
-  connectivity_max_rec_histo ->SetStats(0);
-  connectivity_max_sim_histo ->SetStats(0);
-
-  hists = {connectivity_max_sim_histo, connectivity_max_rec_histo, connectivity_max_lc_histo};
-  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack.png", axes, legend, pos, folder, "Max Total Connectivity");
-
-  createTH1Plot(c1, connectivity_max_lc_si_histo,"Max_Connectivity_LC_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_rec_si_histo,"Max_Connectivity_RecCluster_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_sim_si_histo,"Max_Connectivity_SimCluster_Si.png", axes, folder);
-
-  connectivity_max_lc_si_histo ->SetStats(0);
-  connectivity_max_rec_si_histo ->SetStats(0);
-  connectivity_max_sim_si_histo ->SetStats(0);
-
-  hists = {connectivity_max_sim_si_histo, connectivity_max_rec_si_histo, connectivity_max_lc_si_histo};
-  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack_Si.png", axes, legend, pos, folder, "Max Si Connectivity");
-
-  createTH1Plot(c1, connectivity_max_lc_sc_histo,"Max_Connectivity_LC_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_rec_sc_histo,"Max_Connectivity_RecCluster_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_sim_sc_histo,"Max_Connectivity_SimCluster_Sc.png", axes, folder);
-
-  connectivity_max_lc_sc_histo ->SetStats(0);
-  connectivity_max_rec_sc_histo ->SetStats(0);
-  connectivity_max_sim_sc_histo ->SetStats(0);
-
-  hists = {connectivity_max_sim_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_lc_sc_histo};
-  createTHSPlot(c1, colors, hists, "Max_Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Max Scintillator Connectivity");
+  
 
   // Skip
 
 
-  createTH1Plot(c1, connectivity_skip_lc_histo,"Skip_Connectivity_LC.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_histo,"Skip_Connectivity_RecCluster.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_histo,"Skip_Connectivity_SimCluster.png", axes, folder);
+  std::stringstream ss;
+  ss << "Connectivity_Skip_" <<std::setw(1) << std::setfill('1') << skip_ << "_";
+  tname = ss.str();
+
+  createTH1Plot(c1, connectivity_skip_lc_histo,tname+"LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_histo,tname+"Rechit.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_histo,tname+"Simhit.png", axes, folder);
 
   connectivity_skip_lc_histo ->SetStats(0);
   connectivity_skip_rec_histo ->SetStats(0);
   connectivity_skip_sim_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_histo, connectivity_skip_rec_histo, connectivity_skip_lc_histo};
-  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack.png", axes, legend, pos, folder, "Skip Total Connectivity");
+  createTHSPlot(c1, colors, hists, tname + "Stack.png", axes, legend, pos, folder, "Skip Total Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_si_histo,"Skip_Connectivity_LC_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_si_histo,"Skip_Connectivity_RecCluster_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_si_histo,"Skip_Connectivity_SimCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_lc_si_histo,tname+"LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_si_histo,tname+"RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_si_histo,tname+"SimCluster_Si.png", axes, folder);
 
   connectivity_skip_lc_si_histo ->SetStats(0);
   connectivity_skip_rec_si_histo ->SetStats(0);
   connectivity_skip_sim_si_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
-  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
+  createTHSPlot(c1, colors, hists, tname+"Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_sc_histo,"Skip_Connectivity_LC_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_sc_histo,"Skip_Connectivity_RecCluster_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_sc_histo,"Skip_Connectivity_SimCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_lc_sc_histo,tname+"LC_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_sc_histo,tname+"RecCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_sc_histo,tname+"SimCluster_Sc.png", axes, folder);
 
   connectivity_skip_lc_sc_histo ->SetStats(0);
   connectivity_skip_rec_sc_histo ->SetStats(0);
   connectivity_skip_sim_sc_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_lc_sc_histo};
-  createTHSPlot(c1, colors, hists, "Skip_Connectivity_Stack_Scintillator.png", axes, legend, pos, folder, "Skip Scintillator Connectivity");
+  createTHSPlot(c1, colors, hists, tname+"Stack_Scintillator.png", axes, legend, pos, folder, "Skip Scintillator Connectivity");
+
+  c1->SetLogy(0);
+
+  // Max
+
+  createTH1Plot(c1, connectivity_max_lc_histo,"Connectivity_Max_LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_histo,"Connectivity_Max_RecCluster.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_histo,"Connectivity_Max_SimCluster.png", axes, folder);
+
+  connectivity_max_lc_histo ->SetStats(0);
+  connectivity_max_rec_histo ->SetStats(0);
+  connectivity_max_sim_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_histo, connectivity_max_rec_histo, connectivity_max_lc_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack.png", axes, legend, pos, folder, "Max Total Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_si_histo,"Connectivity_Max_LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_si_histo,"Connectivity_Max_RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_si_histo,"Connectivity_Max_SimCluster_Si.png", axes, folder);
+
+  connectivity_max_lc_si_histo ->SetStats(0);
+  connectivity_max_rec_si_histo ->SetStats(0);
+  connectivity_max_sim_si_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_si_histo, connectivity_max_rec_si_histo, connectivity_max_lc_si_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si.png", axes, legend, pos, folder, "Max Si Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_sc_histo,"Connectivity_Max_LC_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_sc_histo,"Connectivity_Max_RecCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_sc_histo,"Connectivity_Max_SimCluster_Sc.png", axes, folder);
+
+  connectivity_max_lc_sc_histo ->SetStats(0);
+  connectivity_max_rec_sc_histo ->SetStats(0);
+  connectivity_max_sim_sc_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_lc_sc_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Scintillator.png", axes, legend, pos, folder, "Max Scintillator Connectivity");
+
+  // Miss
+
+  createTH1Plot(c1, connectivity_miss_lc_histo,"Connectivity_Miss_LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_rec_histo,"Connectivity_Miss_RecCluster.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_sim_histo,"Connectivity_Miss_SimCluster.png", axes, folder);
+
+  connectivity_miss_lc_histo ->SetStats(0);
+  connectivity_miss_rec_histo ->SetStats(0);
+  connectivity_miss_sim_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_histo, connectivity_miss_rec_histo, connectivity_miss_lc_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack.png", axes, legend, pos, folder, "Miss Total Connectivity");
+
+  createTH1Plot(c1, connectivity_miss_lc_si_histo,"Connectivity_Miss_LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_rec_si_histo,"Connectivity_Miss_RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_sim_si_histo,"Connectivity_Miss_SimCluster_Si.png", axes, folder);
+
+  connectivity_miss_lc_si_histo ->SetStats(0);
+  connectivity_miss_rec_si_histo ->SetStats(0);
+  connectivity_miss_sim_si_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_si_histo, connectivity_miss_rec_si_histo, connectivity_miss_lc_si_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Si.png", axes, legend, pos, folder, "Miss Si Connectivity");
+
+  createTH1Plot(c1, connectivity_miss_lc_sc_histo,"Connectivity_Miss_LC_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_rec_sc_histo,"Connectivity_Miss_RecCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_miss_sim_sc_histo,"Connectivity_Miss_SimCluster_Sc.png", axes, folder);
+
+  connectivity_miss_lc_sc_histo ->SetStats(0);
+  connectivity_miss_rec_sc_histo ->SetStats(0);
+  connectivity_miss_sim_sc_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_sc_histo, connectivity_miss_rec_sc_histo, connectivity_miss_lc_sc_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Scintillator.png", axes, legend, pos, folder, "Miss Scintillator Connectivity");
 
   // Weighted
 
@@ -840,12 +932,16 @@ void EfficiencyStudies::createTHSPlot(TCanvas *c, std::vector<int> colors, std::
 
   THStack hs = THStack(title,title);
   TLegend l = TLegend(lpos[0],lpos[1],lpos[2],lpos[3]);
+  std::vector<int> styles = {1,2,7};
+  std::vector<int> widths = {3,2,1};
 
   gSystem->cd(folder); // move outside?
   c->cd(); // move outside?
 
   for(int i=0; i<int(colors.size());i++){
     hist[i]->SetLineColor(colors[i]);
+    hist[i]->SetLineStyle(styles[i]);
+    hist[i]->SetLineWidth(widths[i]);
     hist[i]->Write();
     hs.Add(hist[i]);
     l.AddEntry(hist[i],lname[i],"l");
@@ -1002,6 +1098,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         DetId detid_ = (it_sc_haf.first);
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
         unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_); 
+
+        std::cout << "Layer: " << layer_ <<std::endl;  
         //std::cout << "layer = " << layer_ << "\n";     
 
       
@@ -1053,7 +1151,9 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       for (unsigned int i0=0; i0<idx_.size(); i0++) {
         nLChits++;
         unsigned int layer_ = recHitTools_.getLayerWithOffset(tmprechits_[idx_[i0]]); 
-        
+
+
+        std::cout << "Layer: " << layer_ <<std::endl;     
 
         float edist = cp_eta - it_lc.eta();
         float phidist = cp_phi - it_lc.phi();
@@ -1124,6 +1224,18 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int max_reccluster_sc_connectivity_counter = 0;
   int max_simcluster_sc_connectivity_counter = 0;
 
+  int miss_lc_connectivity_counter = 0;
+  int miss_reccluster_connectivity_counter = 0;
+  int miss_simcluster_connectivity_counter = 0;
+
+  int miss_lc_si_connectivity_counter = 0;
+  int miss_reccluster_si_connectivity_counter = 0;
+  int miss_simcluster_si_connectivity_counter = 0;
+
+  int miss_lc_sc_connectivity_counter = 0;
+  int miss_reccluster_sc_connectivity_counter = 0;
+  int miss_simcluster_sc_connectivity_counter = 0;
+
   int skip_lc_connectivity_counter = 0;
   int skip_reccluster_connectivity_counter = 0;
   int skip_simcluster_connectivity_counter = 0;
@@ -1136,14 +1248,16 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int skip_reccluster_sc_connectivity_counter = 0;
   int skip_simcluster_sc_connectivity_counter = 0;
 
-  int skip = 1;
-
   std::vector<int> skip_counters(9,0);
 
 
   std::vector<int> connectivity_counters = {lc_connectivity_counter, reccluster_connectivity_counter, simcluster_connectivity_counter,
                                lc_si_connectivity_counter, reccluster_si_connectivity_counter, simcluster_si_connectivity_counter,
                                lc_sc_connectivity_counter, reccluster_sc_connectivity_counter, simcluster_sc_connectivity_counter};
+
+  std::vector<int> connectivity_miss_counters = {miss_lc_connectivity_counter, miss_reccluster_connectivity_counter, miss_simcluster_connectivity_counter,
+                                   miss_lc_si_connectivity_counter, miss_reccluster_si_connectivity_counter, miss_simcluster_si_connectivity_counter,
+                                   miss_lc_sc_connectivity_counter, miss_reccluster_sc_connectivity_counter, miss_simcluster_sc_connectivity_counter};
 
   std::vector<int> connectivity_max_counters = {max_lc_connectivity_counter, max_reccluster_connectivity_counter, max_simcluster_connectivity_counter,
                                    max_lc_si_connectivity_counter, max_reccluster_si_connectivity_counter, max_simcluster_si_connectivity_counter,
@@ -1166,9 +1280,14 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
                                connectivity_max_lc_si_histo, connectivity_max_rec_si_histo, connectivity_max_sim_si_histo,
                                connectivity_max_lc_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_sim_sc_histo};
 
+  std::vector<TH1F*> connectivity_miss_histos = {connectivity_miss_lc_histo, connectivity_miss_rec_histo, connectivity_miss_sim_histo,
+                               connectivity_miss_lc_si_histo, connectivity_miss_rec_si_histo, connectivity_miss_sim_si_histo,
+                               connectivity_miss_lc_sc_histo, connectivity_miss_rec_sc_histo, connectivity_miss_sim_sc_histo};
+
   std::vector<TH1F*> connectivity_skip_histos = {connectivity_skip_lc_histo, connectivity_skip_rec_histo, connectivity_skip_sim_histo,
                                connectivity_skip_lc_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_sim_si_histo,
                                connectivity_skip_lc_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_sim_sc_histo};
+
 
   std::vector<TH1F*> det_bool_histos = {det_bool_lc_histo, det_bool_rec_histo, det_bool_sim_histo,
                                det_bool_lc_si_histo, det_bool_rec_si_histo, det_bool_sim_si_histo,
@@ -1213,11 +1332,15 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         det_bool_histos[j]->Fill(i);
         connectivity_counters[j]++;
         connectivity_skip_counters[j]++;
+        if(connectivity_miss_counters[j]!=0){connectivity_miss_histos[j]->Fill(connectivity_miss_counters[j]);}
+        connectivity_miss_counters[j]=0;
         if(i==46){
           connectivity_histos[j]->Fill(connectivity_counters[j]);
           connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+
           if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
           connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+
           for(int k=i+1-connectivity_counters[j];k<i+1;k++){
             connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
           }
@@ -1225,21 +1348,28 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
 
       else{
-        if(skip_counters[j] < skip){
+
+        connectivity_miss_counters[j]++;
+
+        if(skip_counters[j] < skip_){
           skip_counters[j]++;
           connectivity_skip_counters[j]++;
         }
         else{
-          connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+          if(connectivity_skip_counters[j]!=skip_){connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);}
           skip_counters[j] = 0;
           connectivity_skip_counters[j] = 0;
         }
-        connectivity_histos[j]->Fill(connectivity_counters[j]);
+        if(connectivity_counters[j]!=0){connectivity_histos[j]->Fill(connectivity_counters[j]);}
         for(int k=i-connectivity_counters[j]; k<i;k++){
           connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
         }
         if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
         connectivity_counters[j]=0;
+        if(i==46){
+          connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+          connectivity_miss_histos[j] ->Fill(connectivity_miss_counters[j]);
+        }
       }
     }
 
