@@ -13,15 +13,28 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Specify Eta
 
-eta = "29" # 16, 17, 29, 17_27
+eta = "Eta_29" # Eta_16, Eta_17, Eta_29, Eta_17_27
+
+"""
 
 process.source = cms.Source("PoolSource",
                                 # replace 'myfile.root' with the source file you want to use
                                 fileNames = cms.untracked.vstring(
-            'file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/step3_singlemuon_e100GeV_nopu.root'
+            'file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/'+eta+'/singleel_flatEGun_hgcalCenter/step3/step3_singleel_e100GeV_nopu.root'
                 )
                             )
-outfile_  = 'file:file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/ttree_singlemuon_e100GeV_nopu.root'
+outfile_  = 'file:file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/'+eta+'/singleel_flatEGun_hgcalCenter/step3/ttree_singleel_e100GeV_nopu.root'
+
+"""
+process.source = cms.Source("PoolSource",
+                                # replace 'myfile.root' with the source file you want to use
+                                fileNames = cms.untracked.vstring(
+            'file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/step3_singlemuon_e100GeV_nopu.root'
+                )
+                            )
+outfile_  = 'file:file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_private/production/'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/ttree_singlemuon_e100GeV_nopu.root'
+
+#"""
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string(outfile_),
