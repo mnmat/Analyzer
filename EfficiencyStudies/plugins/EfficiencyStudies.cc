@@ -1,4 +1,4 @@
-// -*- C++ -*-
+ // -*- C++ -*-
 //
 // Package:    Demo/EfficiencyStudies
 // Class:      EfficiencyStudies
@@ -21,6 +21,7 @@
 #include <numeric>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -130,6 +131,14 @@ private:
   int skip_;
   std::string eta_;
 
+  // Energy
+
+  TH1F *energy_rechits_histo;
+
+  // Missing Simhits
+
+  TH2F *missing_simhits_histo;
+
   // Validate Particles
 
   TH1F *val_particle__sim_histo;
@@ -161,6 +170,18 @@ private:
   TH1F* hit_layer_rec_si_histo[47];
   TH1F* hit_layer_lc_si_histo[47];
 
+  TH1F* hit_layer_sim_si_120_histo[47];
+  TH1F* hit_layer_rec_si_120_histo[47];
+  TH1F* hit_layer_lc_si_120_histo[47];
+
+  TH1F* hit_layer_sim_si_200_histo[47];
+  TH1F* hit_layer_rec_si_200_histo[47];
+  TH1F* hit_layer_lc_si_200_histo[47];
+
+  TH1F* hit_layer_sim_si_300_histo[47];
+  TH1F* hit_layer_rec_si_300_histo[47];
+  TH1F* hit_layer_lc_si_300_histo[47];
+
   TH1F* hit_layer_sim_sc_histo[47];
   TH1F* hit_layer_rec_sc_histo[47];
   TH1F* hit_layer_lc_sc_histo[47];
@@ -177,20 +198,41 @@ private:
   TH1F *det_rec_si_histo;
   TH1F *det_lc_si_histo;
 
+  TH1F *det_sim_si_120_histo;
+  TH1F *det_rec_si_120_histo;
+  TH1F *det_lc_si_120_histo;
+
+  TH1F *det_sim_si_200_histo;
+  TH1F *det_rec_si_200_histo;
+  TH1F *det_lc_si_200_histo;
+
+  TH1F *det_sim_si_300_histo;
+  TH1F *det_rec_si_300_histo;
+  TH1F *det_lc_si_300_histo;
+
   TH1F *det_sim_sc_histo;
   TH1F *det_rec_sc_histo;
   TH1F *det_lc_sc_histo;
 
   TH1F *det_bool_lc_histo;
   TH1F *det_bool_lc_si_histo;
+  TH1F *det_bool_lc_si_120_histo;
+  TH1F *det_bool_lc_si_200_histo;
+  TH1F *det_bool_lc_si_300_histo;
   TH1F *det_bool_lc_sc_histo;
 
   TH1F *det_bool_rec_histo;
   TH1F *det_bool_rec_si_histo;
+  TH1F *det_bool_rec_si_120_histo;
+  TH1F *det_bool_rec_si_200_histo;
+  TH1F *det_bool_rec_si_300_histo;
   TH1F *det_bool_rec_sc_histo;
 
   TH1F *det_bool_sim_histo;
   TH1F *det_bool_sim_si_histo;
+  TH1F *det_bool_sim_si_120_histo;
+  TH1F *det_bool_sim_si_200_histo;
+  TH1F *det_bool_sim_si_300_histo;
   TH1F *det_bool_sim_sc_histo;
 
   // Connectivity plots
@@ -202,6 +244,18 @@ private:
   TH1F* connectivity_lc_si_histo;
   TH1F* connectivity_rec_si_histo;
   TH1F* connectivity_sim_si_histo;
+
+  TH1F* connectivity_lc_si_120_histo;
+  TH1F* connectivity_rec_si_120_histo;
+  TH1F* connectivity_sim_si_120_histo;
+
+  TH1F* connectivity_lc_si_200_histo;
+  TH1F* connectivity_rec_si_200_histo;
+  TH1F* connectivity_sim_si_200_histo;
+
+  TH1F* connectivity_lc_si_300_histo;
+  TH1F* connectivity_rec_si_300_histo;
+  TH1F* connectivity_sim_si_300_histo;
 
   TH1F* connectivity_lc_sc_histo;
   TH1F* connectivity_rec_sc_histo;
@@ -215,6 +269,18 @@ private:
   TH1F* connectivity_w_sim_si_histo;
   TH1F* connectivity_w_rec_si_histo;
 
+  TH1F* connectivity_w_lc_si_120_histo;
+  TH1F* connectivity_w_sim_si_120_histo;
+  TH1F* connectivity_w_rec_si_120_histo;
+
+  TH1F* connectivity_w_lc_si_200_histo;
+  TH1F* connectivity_w_sim_si_200_histo;
+  TH1F* connectivity_w_rec_si_200_histo;
+
+  TH1F* connectivity_w_lc_si_300_histo;
+  TH1F* connectivity_w_sim_si_300_histo;
+  TH1F* connectivity_w_rec_si_300_histo;
+
   TH1F* connectivity_w_lc_sc_histo;
   TH1F* connectivity_w_sim_sc_histo;
   TH1F* connectivity_w_rec_sc_histo;
@@ -226,6 +292,18 @@ private:
   TH1F* connectivity_max_lc_si_histo;
   TH1F* connectivity_max_sim_si_histo;
   TH1F* connectivity_max_rec_si_histo;
+
+  TH1F* connectivity_max_lc_si_120_histo;
+  TH1F* connectivity_max_sim_si_120_histo;
+  TH1F* connectivity_max_rec_si_120_histo;
+
+  TH1F* connectivity_max_lc_si_200_histo;
+  TH1F* connectivity_max_sim_si_200_histo;
+  TH1F* connectivity_max_rec_si_200_histo;
+
+  TH1F* connectivity_max_lc_si_300_histo;
+  TH1F* connectivity_max_sim_si_300_histo;
+  TH1F* connectivity_max_rec_si_300_histo;
 
   TH1F* connectivity_max_lc_sc_histo;
   TH1F* connectivity_max_sim_sc_histo;
@@ -239,6 +317,18 @@ private:
   TH1F* connectivity_miss_sim_si_histo;
   TH1F* connectivity_miss_rec_si_histo;
 
+  TH1F* connectivity_miss_lc_si_120_histo;
+  TH1F* connectivity_miss_sim_si_120_histo;
+  TH1F* connectivity_miss_rec_si_120_histo;
+
+  TH1F* connectivity_miss_lc_si_200_histo;
+  TH1F* connectivity_miss_sim_si_200_histo;
+  TH1F* connectivity_miss_rec_si_200_histo;
+
+  TH1F* connectivity_miss_lc_si_300_histo;
+  TH1F* connectivity_miss_sim_si_300_histo;
+  TH1F* connectivity_miss_rec_si_300_histo;
+
   TH1F* connectivity_miss_lc_sc_histo;
   TH1F* connectivity_miss_sim_sc_histo;
   TH1F* connectivity_miss_rec_sc_histo;
@@ -251,6 +341,18 @@ private:
   TH1F* connectivity_skip_lc_si_histo;
   TH1F* connectivity_skip_sim_si_histo;
   TH1F* connectivity_skip_rec_si_histo;
+
+  TH1F* connectivity_skip_lc_si_120_histo;
+  TH1F* connectivity_skip_sim_si_120_histo;
+  TH1F* connectivity_skip_rec_si_120_histo;
+
+  TH1F* connectivity_skip_lc_si_200_histo;
+  TH1F* connectivity_skip_sim_si_200_histo;
+  TH1F* connectivity_skip_rec_si_200_histo;
+
+  TH1F* connectivity_skip_lc_si_300_histo;
+  TH1F* connectivity_skip_sim_si_300_histo;
+  TH1F* connectivity_skip_rec_si_300_histo;
 
   TH1F* connectivity_skip_lc_sc_histo;
   TH1F* connectivity_skip_sim_sc_histo;
@@ -274,6 +376,27 @@ private:
   TH1F* dist_x_cp_lc_si;
   TH1F* dist_y_cp_lc_si;
   TH2F* dist_x_y_cp_lc_si;
+
+  TH1F* dist_eta_cp_lc_si_120;
+  TH1F* dist_phi_cp_lc_si_120;
+  TH2F* dist_eta_phi_cp_lc_si_120;
+  TH1F* dist_x_cp_lc_si_120;
+  TH1F* dist_y_cp_lc_si_120;
+  TH2F* dist_x_y_cp_lc_si_120;
+
+  TH1F* dist_eta_cp_lc_si_200;
+  TH1F* dist_phi_cp_lc_si_200;
+  TH2F* dist_eta_phi_cp_lc_si_200;
+  TH1F* dist_x_cp_lc_si_200;
+  TH1F* dist_y_cp_lc_si_200;
+  TH2F* dist_x_y_cp_lc_si_200;
+
+  TH1F* dist_eta_cp_lc_si_300;
+  TH1F* dist_phi_cp_lc_si_300;
+  TH2F* dist_eta_phi_cp_lc_si_300;
+  TH1F* dist_x_cp_lc_si_300;
+  TH1F* dist_y_cp_lc_si_300;
+  TH2F* dist_x_y_cp_lc_si_300;
 
   TH1F* dist_eta_cp_lc_sc;
   TH1F* dist_phi_cp_lc_sc;
@@ -303,6 +426,30 @@ private:
   TH1F* dist_y_cp_rec_si;
   TH2F* dist_x_y_cp_rec_si;
 
+  TH1F* dist_dr_cp_rec_si_120;
+  TH1F* dist_eta_cp_rec_si_120;
+  TH1F* dist_phi_cp_rec_si_120;
+  TH2F* dist_eta_phi_cp_rec_si_120;
+  TH1F* dist_x_cp_rec_si_120;
+  TH1F* dist_y_cp_rec_si_120;
+  TH2F* dist_x_y_cp_rec_si_120;
+
+  TH1F* dist_dr_cp_rec_si_200;
+  TH1F* dist_eta_cp_rec_si_200;
+  TH1F* dist_phi_cp_rec_si_200;
+  TH2F* dist_eta_phi_cp_rec_si_200;
+  TH1F* dist_x_cp_rec_si_200;
+  TH1F* dist_y_cp_rec_si_200;
+  TH2F* dist_x_y_cp_rec_si_200;
+
+  TH1F* dist_dr_cp_rec_si_300;
+  TH1F* dist_eta_cp_rec_si_300;
+  TH1F* dist_phi_cp_rec_si_300;
+  TH2F* dist_eta_phi_cp_rec_si_300;
+  TH1F* dist_x_cp_rec_si_300;
+  TH1F* dist_y_cp_rec_si_300;
+  TH2F* dist_x_y_cp_rec_si_300;
+
   TH1F* dist_dr_cp_rec_sc;
   TH1F* dist_eta_cp_rec_sc;
   TH1F* dist_phi_cp_rec_sc;
@@ -327,6 +474,30 @@ private:
   TH1F* dist_y_cp_sim_si;
   TH2F* dist_x_y_cp_sim_si;
 
+  TH1F* dist_dr_cp_sim_si_120;
+  TH1F* dist_eta_cp_sim_si_120;
+  TH1F* dist_phi_cp_sim_si_120;
+  TH2F* dist_eta_phi_cp_sim_si_120;
+  TH1F* dist_x_cp_sim_si_120;
+  TH1F* dist_y_cp_sim_si_120;
+  TH2F* dist_x_y_cp_sim_si_120;
+
+  TH1F* dist_dr_cp_sim_si_200;
+  TH1F* dist_eta_cp_sim_si_200;
+  TH1F* dist_phi_cp_sim_si_200;
+  TH2F* dist_eta_phi_cp_sim_si_200;
+  TH1F* dist_x_cp_sim_si_200;
+  TH1F* dist_y_cp_sim_si_200;
+  TH2F* dist_x_y_cp_sim_si_200;
+
+  TH1F* dist_dr_cp_sim_si_300;
+  TH1F* dist_eta_cp_sim_si_300;
+  TH1F* dist_phi_cp_sim_si_300;
+  TH2F* dist_eta_phi_cp_sim_si_300;
+  TH1F* dist_x_cp_sim_si_300;
+  TH1F* dist_y_cp_sim_si_300;
+  TH2F* dist_x_y_cp_sim_si_300;
+
   TH1F* dist_dr_cp_sim_sc;
   TH1F* dist_eta_cp_sim_sc;
   TH1F* dist_phi_cp_sim_sc;
@@ -335,7 +506,86 @@ private:
   TH1F* dist_y_cp_sim_sc;
   TH2F* dist_x_y_cp_sim_sc;
 
-  
+  TH1F* dist_x_cp_sim_layer_histo[47];
+  TH1F* dist_y_cp_sim_layer_histo[47];
+  TH1F* dist_x_cp_sim_si_layer_histo[47];
+  TH1F* dist_y_cp_sim_si_layer_histo[47];
+  TH1F* dist_x_cp_sim_si_120_layer_histo[47];
+  TH1F* dist_y_cp_sim_si_120_layer_histo[47];
+  TH1F* dist_x_cp_sim_si_200_layer_histo[47];
+  TH1F* dist_y_cp_sim_si_200_layer_histo[47];
+  TH1F* dist_x_cp_sim_si_300_layer_histo[47];
+  TH1F* dist_y_cp_sim_si_300_layer_histo[47];
+  TH1F* dist_x_cp_sim_sc_layer_histo[47];
+  TH1F* dist_y_cp_sim_sc_layer_histo[47];
+
+  TH1F* dist_x_cp_rec_layer_histo[47];
+  TH1F* dist_y_cp_rec_layer_histo[47];
+  TH1F* dist_x_cp_rec_si_layer_histo[47];
+  TH1F* dist_y_cp_rec_si_layer_histo[47];
+  TH1F* dist_x_cp_rec_si_120_layer_histo[47];
+  TH1F* dist_y_cp_rec_si_120_layer_histo[47];
+  TH1F* dist_x_cp_rec_si_200_layer_histo[47];
+  TH1F* dist_y_cp_rec_si_200_layer_histo[47];
+  TH1F* dist_x_cp_rec_si_300_layer_histo[47];
+  TH1F* dist_y_cp_rec_si_300_layer_histo[47];
+  TH1F* dist_x_cp_rec_sc_layer_histo[47];
+  TH1F* dist_y_cp_rec_sc_layer_histo[47];
+
+  TH1F* dist_x_cp_lc_layer_histo[47];
+  TH1F* dist_y_cp_lc_layer_histo[47];
+  TH1F* dist_x_cp_lc_si_layer_histo[47];
+  TH1F* dist_y_cp_lc_si_layer_histo[47];
+  TH1F* dist_x_cp_lc_si_120_layer_histo[47];
+  TH1F* dist_y_cp_lc_si_120_layer_histo[47];
+  TH1F* dist_x_cp_lc_si_200_layer_histo[47];
+  TH1F* dist_y_cp_lc_si_200_layer_histo[47];
+  TH1F* dist_x_cp_lc_si_300_layer_histo[47];
+  TH1F* dist_y_cp_lc_si_300_layer_histo[47];
+  TH1F* dist_x_cp_lc_sc_layer_histo[47];
+  TH1F* dist_y_cp_lc_sc_layer_histo[47];
+
+  TH1F* dist_phi_cp_sim_layer_histo[47];
+  TH1F* dist_eta_cp_sim_layer_histo[47];
+  TH1F* dist_phi_cp_sim_si_layer_histo[47];
+  TH1F* dist_eta_cp_sim_si_layer_histo[47];
+  TH1F* dist_phi_cp_sim_si_120_layer_histo[47];
+  TH1F* dist_eta_cp_sim_si_120_layer_histo[47];
+  TH1F* dist_phi_cp_sim_si_200_layer_histo[47];
+  TH1F* dist_eta_cp_sim_si_200_layer_histo[47];
+  TH1F* dist_phi_cp_sim_si_300_layer_histo[47];
+  TH1F* dist_eta_cp_sim_si_300_layer_histo[47];
+  TH1F* dist_phi_cp_sim_sc_layer_histo[47];
+  TH1F* dist_eta_cp_sim_sc_layer_histo[47];
+
+  TH1F* dist_phi_cp_rec_layer_histo[47];
+  TH1F* dist_eta_cp_rec_layer_histo[47];
+  TH1F* dist_phi_cp_rec_si_layer_histo[47];
+  TH1F* dist_eta_cp_rec_si_layer_histo[47];
+  TH1F* dist_phi_cp_rec_si_120_layer_histo[47];
+  TH1F* dist_eta_cp_rec_si_120_layer_histo[47];
+  TH1F* dist_phi_cp_rec_si_200_layer_histo[47];
+  TH1F* dist_eta_cp_rec_si_200_layer_histo[47];
+  TH1F* dist_phi_cp_rec_si_300_layer_histo[47];
+  TH1F* dist_eta_cp_rec_si_300_layer_histo[47];
+  TH1F* dist_phi_cp_rec_sc_layer_histo[47];
+  TH1F* dist_eta_cp_rec_sc_layer_histo[47];
+
+  TH1F* dist_phi_cp_lc_layer_histo[47];
+  TH1F* dist_eta_cp_lc_layer_histo[47];
+  TH1F* dist_phi_cp_lc_si_layer_histo[47];
+  TH1F* dist_eta_cp_lc_si_layer_histo[47];
+  TH1F* dist_phi_cp_lc_si_120_layer_histo[47];
+  TH1F* dist_eta_cp_lc_si_120_layer_histo[47];
+  TH1F* dist_phi_cp_lc_si_200_layer_histo[47];
+  TH1F* dist_eta_cp_lc_si_200_layer_histo[47];
+  TH1F* dist_phi_cp_lc_si_300_layer_histo[47];
+  TH1F* dist_eta_cp_lc_si_300_layer_histo[47];
+  TH1F* dist_phi_cp_lc_sc_layer_histo[47];
+  TH1F* dist_eta_cp_lc_sc_layer_histo[47];
+
+
+
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   edm::ESGetToken<SetupData, SetupRecord> setupToken_;
@@ -419,6 +669,16 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   }
 
   */
+
+  // Energy histograms
+
+
+  energy_rechits_histo = new TH1F("Energy Rechits", "Energy Rechits", 100,0,5);
+
+  // Missing Hits 2D Histogram
+
+  missing_simhits_histo = new TH2F("Missing Simhits","Missing Simhits",47,0,47,500,1,501);
+
 
   // Validation Plots (check Caloparticles, etc.)
 
@@ -512,6 +772,63 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     hit_layer_lc_si_histo[i]->SetLineColor(kGreen);
 //    hit_layer_lc_si_histo[i]->SetLineStyle(7);
 
+    // 120
+
+    t_name = sim_branch+"_si_120";
+    hit_layer_sim_si_120_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_sim_si_120_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_si_histo[i]->SetLineStyle(1);
+
+
+    t_name = rec_branch+"_si_120";
+    hit_layer_rec_si_120_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_rec_si_120_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_si_histo[i]->SetLineStyle(2);
+
+
+    t_name = lc_branch+"_si_120";
+    hit_layer_lc_si_120_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_lc_si_120_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_si_histo[i]->SetLineStyle(7);
+
+    // 200
+
+    t_name = sim_branch+"_si_200";
+    hit_layer_sim_si_200_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_sim_si_200_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_si_histo[i]->SetLineStyle(1);
+
+
+    t_name = rec_branch+"_si_200";
+    hit_layer_rec_si_200_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_rec_si_200_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_si_histo[i]->SetLineStyle(2);
+
+
+    t_name = lc_branch+"_si_200";
+    hit_layer_lc_si_200_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_lc_si_200_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_si_histo[i]->SetLineStyle(7);
+
+    // 300
+
+    t_name = sim_branch+"_si_300";
+    hit_layer_sim_si_300_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_sim_si_300_histo[i]->SetLineColor(kBlue);
+//    hit_layer_sim_si_histo[i]->SetLineStyle(1);
+
+
+    t_name = rec_branch+"_si_300";
+    hit_layer_rec_si_300_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_rec_si_300_histo[i]->SetLineColor(kRed);
+//    hit_layer_rec_si_histo[i]->SetLineStyle(2);
+
+
+    t_name = lc_branch+"_si_300";
+    hit_layer_lc_si_300_histo[i] = new TH1F(t_name,t_name,20,0,20);
+    hit_layer_lc_si_300_histo[i]->SetLineColor(kGreen);
+//    hit_layer_lc_si_histo[i]->SetLineStyle(7);
+
 
     // Scintillator hits
 
@@ -538,14 +855,23 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   det_sim_histo = new TH1F("Simhits per Layer", "Simhits per Layer", 47, 0, 47);
   det_sim_si_histo = new TH1F("Simhits per Layer (Si)", "Simhits per Layer (Si)", 47, 0, 47);
+  det_sim_si_120_histo = new TH1F("Simhits per Layer (Si 120)", "Simhits per Layer (Si 120)", 47, 0, 47);
+  det_sim_si_200_histo = new TH1F("Simhits per Layer (Si 200)", "Simhits per Layer (Si 200)", 47, 0, 47);
+  det_sim_si_300_histo = new TH1F("Simhits per Layer (Si 300)", "Simhits per Layer (Si 300)", 47, 0, 47);
   det_sim_sc_histo = new TH1F("Simhits per Layer (Scintillator)", "Simhits per Layer (Scintillator)", 47, 0, 47);
 
   det_rec_histo = new TH1F("Rechits per Layer", "Rechits per Layer", 47, 0, 47);
   det_rec_si_histo = new TH1F("Rechits per Layer (Si)", "Rechits per Layer (Si)", 47, 0, 47);
+  det_rec_si_120_histo = new TH1F("Rechits per Layer (Si 120)", "Rechits per Layer (Si 120)", 47, 0, 47);
+  det_rec_si_200_histo = new TH1F("Rechits per Layer (Si 200)", "Rechits per Layer (Si 200)", 47, 0, 47);
+  det_rec_si_300_histo = new TH1F("Rechits per Layer (Si 300)", "Rechits per Layer (Si 300)", 47, 0, 47);
   det_rec_sc_histo = new TH1F("Rechits per Layer (Scintillator)", "Rechits per Layer (Scintillator)", 47, 0, 47);
 
   det_lc_histo = new TH1F("LChits per Layer", "LChits per Layer", 47, 0, 47);
   det_lc_si_histo = new TH1F("LChits per Layer (Si)", "LChits per Layer (Si)", 47, 0, 47);
+  det_lc_si_120_histo = new TH1F("LChits per Layer (Si 120)", "LChits per Layer (Si 120)", 47, 0, 47);
+  det_lc_si_200_histo = new TH1F("LChits per Layer (Si 200)", "LChits per Layer (Si 200)", 47, 0, 47);
+  det_lc_si_300_histo = new TH1F("LChits per Layer (Si 300)", "LChits per Layer (Si 300)", 47, 0, 47);
   det_lc_sc_histo = new TH1F("LChits per Layer (Scintillator)", "LChits per Layer (Scintillator)", 47, 0, 47);
 
   det_bool_sim_histo = new TH1F("Sim layer total", "Sim layer total", 47,0,47);
@@ -573,6 +899,42 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   det_bool_lc_si_histo->SetLineColor(kGreen);
 //  det_bool_lc_si_histo->SetLineStyle(7);
 
+  det_bool_sim_si_120_histo = new TH1F("Sim layer total (Si 120)", "Sim layer total (Si 120)", 47,0,47);
+  det_bool_sim_si_120_histo->SetLineColor(kBlue);
+//  det_bool_sim_si_histo->SetLineStyle(1);
+
+  det_bool_rec_si_120_histo = new TH1F("Rec layer total (Si 120)", "Rec layer total (Si 120)", 47,0,47);
+  det_bool_rec_si_120_histo->SetLineColor(kRed);
+//  det_bool_rec_si_histo->SetLineStyle(2);
+
+  det_bool_lc_si_120_histo = new TH1F("LC layer total (Si 120)", "LC layer total (Si 120)", 47,0,47);
+  det_bool_lc_si_120_histo->SetLineColor(kGreen);
+//  det_bool_lc_si_histo->SetLineStyle(7);
+
+  det_bool_sim_si_200_histo = new TH1F("Sim layer total (Si 200)", "Sim layer total (Si 200)", 47,0,47);
+  det_bool_sim_si_200_histo->SetLineColor(kBlue);
+//  det_bool_sim_si_histo->SetLineStyle(1);
+
+  det_bool_rec_si_200_histo = new TH1F("Rec layer total (Si 200)", "Rec layer total (Si 200)", 47,0,47);
+  det_bool_rec_si_200_histo->SetLineColor(kRed);
+//  det_bool_rec_si_histo->SetLineStyle(2);
+
+  det_bool_lc_si_200_histo = new TH1F("LC layer total (Si 200)", "LC layer total (Si 200)", 47,0,47);
+  det_bool_lc_si_200_histo->SetLineColor(kGreen);
+//  det_bool_lc_si_histo->SetLineStyle(7);
+
+  det_bool_sim_si_300_histo = new TH1F("Sim layer total (Si 300)", "Sim layer total (Si 300)", 47,0,47);
+  det_bool_sim_si_300_histo->SetLineColor(kBlue);
+//  det_bool_sim_si_histo->SetLineStyle(1);
+
+  det_bool_rec_si_300_histo = new TH1F("Rec layer total (Si 300)", "Rec layer total (Si 300)", 47,0,47);
+  det_bool_rec_si_300_histo->SetLineColor(kRed);
+//  det_bool_rec_si_histo->SetLineStyle(2);
+
+  det_bool_lc_si_300_histo = new TH1F("LC layer total (Si 300)", "LC layer total (Si 300)", 47,0,47);
+  det_bool_lc_si_300_histo->SetLineColor(kGreen);
+//  det_bool_lc_si_histo->SetLineStyle(7);
+
 
   det_bool_sim_sc_histo = new TH1F("Sim layer total (Sc)", "Sim layer total (Sc)", 47,0,47);
   det_bool_sim_sc_histo->SetLineColor(kBlue);
@@ -597,6 +959,18 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_rec_si_histo = new TH1F("Rechit Connectivity (Si)", "Rechit Connectivity (Si)", 48,0,48);
   connectivity_sim_si_histo = new TH1F("Simhit Connectivity (Si)", "Simhit Connectivity (Si)", 48,0,48);
 
+  connectivity_lc_si_120_histo = new TH1F("LC Connectivity (Si 120)", "LC Connectivity (Si 120)", 48,0,48);
+  connectivity_rec_si_120_histo = new TH1F("Rechit Connectivity (Si 120)", "Rechit Connectivity (Si 120)", 48,0,48);
+  connectivity_sim_si_120_histo = new TH1F("Simhit Connectivity (Si 120)", "Simhit Connectivity (Si 120)", 48,0,48);
+
+  connectivity_lc_si_200_histo = new TH1F("LC Connectivity (Si 200)", "LC Connectivity (Si 200)", 48,0,48);
+  connectivity_rec_si_200_histo = new TH1F("Rechit Connectivity (Si 200)", "Rechit Connectivity (Si 200)", 48,0,48);
+  connectivity_sim_si_200_histo = new TH1F("Simhit Connectivity (Si 200)", "Simhit Connectivity (Si 200)", 48,0,48);
+
+  connectivity_lc_si_300_histo = new TH1F("LC Connectivity (Si 300)", "LC Connectivity (Si 300)", 48,0,48);
+  connectivity_rec_si_300_histo = new TH1F("Rechit Connectivity (Si 300)", "Rechit Connectivity (Si 300)", 48,0,48);
+  connectivity_sim_si_300_histo = new TH1F("Simhit Connectivity (Si 300)", "Simhit Connectivity (Si 300)", 48,0,48);
+
   connectivity_lc_sc_histo = new TH1F("LC Connectivity (Sc)", "LC Connectivity (Sc)", 48,0,48);
   connectivity_rec_sc_histo = new TH1F("Rechit Connectivity (Sc)", "Rechit Connectivity (Sc)", 48,0,48);
   connectivity_sim_sc_histo = new TH1F("Simhit Connectivity (Sc)", "Simhit Connectivity (Sc)", 48,0,48);
@@ -605,9 +979,21 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_w_rec_histo = new TH1F("Rechit Weighted Connectivity", "Rechit Weighted Connectivity", 48,0,48);
   connectivity_w_sim_histo = new TH1F("Simhit Weighted Connectivity", "Simhit Weighted Connectivity", 48,0,48);
 
-  connectivity_w_lc_si_histo = new TH1F("LC Weighted Connectivity (Si)", "LC Weighted Connectivity (Sc)", 48,0,48);
-  connectivity_w_rec_si_histo = new TH1F("Rechit Weighted Connectivity (Si)", "Rechit Weighted Connectivity (Sc)", 48,0,48);
-  connectivity_w_sim_si_histo = new TH1F("Simhit Weighted Connectivity (Si)", "Simhit Weighted Connectivity (Sc)", 48,0,48);
+  connectivity_w_lc_si_histo = new TH1F("LC Weighted Connectivity (Si)", "LC Weighted Connectivity (Si)", 48,0,48);
+  connectivity_w_rec_si_histo = new TH1F("Rechit Weighted Connectivity (Si)", "Rechit Weighted Connectivity (Si)", 48,0,48);
+  connectivity_w_sim_si_histo = new TH1F("Simhit Weighted Connectivity (Si)", "Simhit Weighted Connectivity (Si)", 48,0,48);
+
+  connectivity_w_lc_si_120_histo = new TH1F("LC Weighted Connectivity (Si 120)", "LC Weighted Connectivity (Si 120)", 48,0,48);
+  connectivity_w_rec_si_120_histo = new TH1F("Rechit Weighted Connectivity (Si 120)", "Rechit Weighted Connectivity (Si 120)", 48,0,48);
+  connectivity_w_sim_si_120_histo = new TH1F("Simhit Weighted Connectivity (Si 120)", "Simhit Weighted Connectivity (Si 120)", 48,0,48);
+
+  connectivity_w_lc_si_200_histo = new TH1F("LC Weighted Connectivity (Si 200)", "LC Weighted Connectivity (Si 200)", 48,0,48);
+  connectivity_w_rec_si_200_histo = new TH1F("Rechit Weighted Connectivity (Si 200)", "Rechit Weighted Connectivity (Si 200)", 48,0,48);
+  connectivity_w_sim_si_200_histo = new TH1F("Simhit Weighted Connectivity (Si 200)", "Simhit Weighted Connectivity (Si 200)", 48,0,48);
+
+  connectivity_w_lc_si_300_histo = new TH1F("LC Weighted Connectivity (Si 300)", "LC Weighted Connectivity (Si 300)", 48,0,48);
+  connectivity_w_rec_si_300_histo = new TH1F("Rechit Weighted Connectivity (Si 300)", "Rechit Weighted Connectivity (Si 300)", 48,0,48);
+  connectivity_w_sim_si_300_histo = new TH1F("Simhit Weighted Connectivity (Si 300)", "Simhit Weighted Connectivity (Si 300)", 48,0,48);
 
   connectivity_w_lc_sc_histo = new TH1F("LC Weighted Connectivity (Sc)", "LC Weighted Connectivity (Sc)", 48,0,48);
   connectivity_w_rec_sc_histo = new TH1F("Rechit Weighted Connectivity (Sc)", "Rechit Weighted Connectivity (Sc)", 48,0,48);
@@ -621,6 +1007,19 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_max_rec_si_histo = new TH1F("Rechit Max Connectivity (Si)", "Rechit Max Connectivity (Si)", 48,0,48);
   connectivity_max_sim_si_histo = new TH1F("Simhit Max Connectivity (Si)", "Simhit Max Connectivity (Si)", 48,0,48);
 
+  connectivity_max_lc_si_120_histo = new TH1F("LC Max Connectivity (Si 120)", "LC Max Connectivity (Si 120)", 48,0,48);
+  connectivity_max_rec_si_120_histo = new TH1F("Rechit Max Connectivity (Si 120)", "Rechit Max Connectivity (Si 120)", 48,0,48);
+  connectivity_max_sim_si_120_histo = new TH1F("Simhit Max Connectivity (Si 120)", "Simhit Max Connectivity (Si 120)", 48,0,48);
+
+  connectivity_max_lc_si_200_histo = new TH1F("LC Max Connectivity (Si 200)", "LC Max Connectivity (Si 200)", 48,0,48);
+  connectivity_max_rec_si_200_histo = new TH1F("Rechit Max Connectivity (Si 200)", "Rechit Max Connectivity (Si 200)", 48,0,48);
+  connectivity_max_sim_si_200_histo = new TH1F("Simhit Max Connectivity (Si 200)", "Simhit Max Connectivity (Si 200)", 48,0,48);
+
+  connectivity_max_lc_si_300_histo = new TH1F("LC Max Connectivity (Si 300)", "LC Max Connectivity (Si 300)", 48,0,48);
+  connectivity_max_rec_si_300_histo = new TH1F("Rechit Max Connectivity (Si 300)", "Rechit Max Connectivity (Si 300)", 48,0,48);
+  connectivity_max_sim_si_300_histo = new TH1F("Simhit Max Connectivity (Si 300)", "Simhit Max Connectivity (Si 300)", 48,0,48);
+
+
   connectivity_max_lc_sc_histo = new TH1F("LC Max Connectivity (Sc)", "LC Max Connectivity (Sc)", 48,0,48);
   connectivity_max_rec_sc_histo = new TH1F("Rechit Max Connectivity (Sc)", "Rechit Max Connectivity (Sc)", 48,0,48);
   connectivity_max_sim_sc_histo = new TH1F("Simhit Max Connectivity (Sc)", "Simhit Max Connectivity (Sc)", 48,0,48);
@@ -633,6 +1032,18 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_miss_rec_si_histo = new TH1F("Rechit Miss Connectivity (Si)", "Rechit Miss Connectivity (Si)", 48,0,48);
   connectivity_miss_sim_si_histo = new TH1F("Simhit Miss Connectivity (Si)", "Simhit Miss Connectivity (Si)", 48,0,48);
 
+  connectivity_miss_lc_si_120_histo = new TH1F("LC Miss Connectivity (Si 120)", "LC Miss Connectivity (Si 120)", 48,0,48);
+  connectivity_miss_rec_si_120_histo = new TH1F("Rechit Miss Connectivity (Si 120)", "Rechit Miss Connectivity (Si 120)", 48,0,48);
+  connectivity_miss_sim_si_120_histo = new TH1F("Simhit Miss Connectivity (Si 120)", "Simhit Miss Connectivity (Si 120)", 48,0,48);
+
+  connectivity_miss_lc_si_200_histo = new TH1F("LC Miss Connectivity (Si 200)", "LC Miss Connectivity (Si 200)", 48,0,48);
+  connectivity_miss_rec_si_200_histo = new TH1F("Rechit Miss Connectivity (Si 200)", "Rechit Miss Connectivity (Si 200)", 48,0,48);
+  connectivity_miss_sim_si_200_histo = new TH1F("Simhit Miss Connectivity (Si 200)", "Simhit Miss Connectivity (Si 200)", 48,0,48);
+
+  connectivity_miss_lc_si_300_histo = new TH1F("LC Miss Connectivity (Si 300)", "LC Miss Connectivity (Si 300)", 48,0,48);
+  connectivity_miss_rec_si_300_histo = new TH1F("Rechit Miss Connectivity (Si 300)", "Rechit Miss Connectivity (Si 300)", 48,0,48);
+  connectivity_miss_sim_si_300_histo = new TH1F("Simhit Miss Connectivity (Si 300)", "Simhit Miss Connectivity (Si 300)", 48,0,48);
+
   connectivity_miss_lc_sc_histo = new TH1F("LC Miss Connectivity (Sc)", "LC Miss Connectivity (Sc)", 48,0,48);
   connectivity_miss_rec_sc_histo = new TH1F("Rechit Miss Connectivity (Sc)", "Rechit Miss Connectivity (Sc)", 48,0,48);
   connectivity_miss_sim_sc_histo = new TH1F("Simhit Miss Connectivity (Sc)", "Simhit Miss Connectivity (Sc)", 48,0,48);
@@ -644,6 +1055,18 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   connectivity_skip_lc_si_histo = new TH1F("LC Skip Connectivity (Si)", "LC Skip Connectivity (Sc)", 48,0,48);
   connectivity_skip_rec_si_histo = new TH1F("Rechit Skip Connectivity (Si)", "Rechit Skip Connectivity (Si)", 48,0,48);
   connectivity_skip_sim_si_histo = new TH1F("Simhit Skip Connectivity (Si)", "Simhit Skip Connectivity (Si)", 48,0,48);
+
+  connectivity_skip_lc_si_120_histo = new TH1F("LC Skip Connectivity (Si 120)", "LC Skip Connectivity (Si 120)", 48,0,48);
+  connectivity_skip_rec_si_120_histo = new TH1F("Rechit Skip Connectivity (Si 120)", "Rechit Skip Connectivity (Si 120)", 48,0,48);
+  connectivity_skip_sim_si_120_histo = new TH1F("Simhit Skip Connectivity (Si 120)", "Simhit Skip Connectivity (Si 120)", 48,0,48);
+
+  connectivity_skip_lc_si_200_histo = new TH1F("LC Skip Connectivity (Si 200)", "LC Skip Connectivity (Si 200)", 48,0,48);
+  connectivity_skip_rec_si_200_histo = new TH1F("Rechit Skip Connectivity (Si 200)", "Rechit Skip Connectivity (Si 200)", 48,0,48);
+  connectivity_skip_sim_si_200_histo = new TH1F("Simhit Skip Connectivity (Si 200)", "Simhit Skip Connectivity (Si 200)", 48,0,48);
+
+  connectivity_skip_lc_si_300_histo = new TH1F("LC Skip Connectivity (Si 300)", "LC Skip Connectivity (Si 300)", 48,0,48);
+  connectivity_skip_rec_si_300_histo = new TH1F("Rechit Skip Connectivity (Si 300)", "Rechit Skip Connectivity (Si 300)", 48,0,48);
+  connectivity_skip_sim_si_300_histo = new TH1F("Simhit Skip Connectivity (Si 300)", "Simhit Skip Connectivity (Si 300)", 48,0,48);
 
   connectivity_skip_lc_sc_histo = new TH1F("LC Skip Connectivity (Sc)", "LC Skip Connectivity (Sc)", 48,0,48);
   connectivity_skip_rec_sc_histo = new TH1F("Rechit Skip Connectivity (Sc)", "Rechit Skip Connectivity (Sc)", 48,0,48);
@@ -676,6 +1099,27 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   dist_y_cp_lc_si = new TH1F("y Diff Caloparticles - LC Si", "y Diff Caloparticles - LC Si", 200,-10,10);
   dist_x_y_cp_lc_si = new TH2F("x-y Diff Caloparticles - LC Si","x-y Diff Caloparticles - LC Si",200,-10,10,200,-10,10);
 
+  dist_eta_cp_lc_si_120 = new TH1F("Eta Diff Caloparticles - LC Si 120", "Eta Diff Caloparticles - LC Si 120", 300,-0.15,0.15);
+  dist_phi_cp_lc_si_120 = new TH1F("Phi Diff Caloparticles - LC Si 120", "Phi Diff Caloparticles - LC Si 120", 300,-0.15,0.15);
+  dist_eta_phi_cp_lc_si_120 = new TH2F("Eta Phi Diff Caloparticles - LC Si 120","Eta Phi Diff Caloparticles - LC Si 120",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_lc_si_120 = new TH1F("x Diff Caloparticles - LC Si 120", "x Diff Caloparticles - LC Si 120", 200,-10,10);
+  dist_y_cp_lc_si_120 = new TH1F("y Diff Caloparticles - LC Si 120", "y Diff Caloparticles - LC Si 120", 200,-10,10);
+  dist_x_y_cp_lc_si_120 = new TH2F("x-y Diff Caloparticles - LC Si 120","x-y Diff Caloparticles - LC Si 120",200,-10,10,200,-10,10);
+
+  dist_eta_cp_lc_si_200 = new TH1F("Eta Diff Caloparticles - LC Si 200", "Eta Diff Caloparticles - LC Si 200", 300,-0.15,0.15);
+  dist_phi_cp_lc_si_200 = new TH1F("Phi Diff Caloparticles - LC Si 200", "Phi Diff Caloparticles - LC Si 200", 300,-0.15,0.15);
+  dist_eta_phi_cp_lc_si_200 = new TH2F("Eta Phi Diff Caloparticles - LC Si 200","Eta Phi Diff Caloparticles - LC Si 200",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_lc_si_200 = new TH1F("x Diff Caloparticles - LC Si 200", "x Diff Caloparticles - LC Si 200", 200,-10,10);
+  dist_y_cp_lc_si_200 = new TH1F("y Diff Caloparticles - LC Si 200", "y Diff Caloparticles - LC Si 200", 200,-10,10);
+  dist_x_y_cp_lc_si_200 = new TH2F("x-y Diff Caloparticles - LC Si 200","x-y Diff Caloparticles - LC Si 200",200,-10,10,200,-10,10);
+
+  dist_eta_cp_lc_si_300 = new TH1F("Eta Diff Caloparticles - LC Si 300", "Eta Diff Caloparticles - LC Si 300", 300,-0.15,0.15);
+  dist_phi_cp_lc_si_300 = new TH1F("Phi Diff Caloparticles - LC Si 300", "Phi Diff Caloparticles - LC Si 300", 300,-0.15,0.15);
+  dist_eta_phi_cp_lc_si_300 = new TH2F("Eta Phi Diff Caloparticles - LC Si 300","Eta Phi Diff Caloparticles - LC Si 300",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_lc_si_300 = new TH1F("x Diff Caloparticles - LC Si 300", "x Diff Caloparticles - LC Si 300", 200,-10,10);
+  dist_y_cp_lc_si_300 = new TH1F("y Diff Caloparticles - LC Si 300", "y Diff Caloparticles - LC Si 300", 200,-10,10);
+  dist_x_y_cp_lc_si_300 = new TH2F("x-y Diff Caloparticles - LC Si 300","x-y Diff Caloparticles - LC Si 300",200,-10,10,200,-10,10);
+
   dist_eta_cp_lc_sc = new TH1F("Eta Diff Caloparticles - LC Sc", "Eta Diff Caloparticles - LC Sc", 300,-0.15,0.15);
   dist_phi_cp_lc_sc = new TH1F("Phi Diff Caloparticles - LC Sc", "Phi Diff Caloparticles - LC Sc", 300,-0.15,0.15);
   dist_eta_phi_cp_lc_sc = new TH2F("Eta Phi Diff Caloparticles - LC Sc","Eta Phi Diff Caloparticles - LC Sc",200,-0.2,0.2,200,-0.2,0.2);
@@ -698,6 +1142,30 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   dist_x_cp_rec_si = new TH1F("x Diff Caloparticles - Rechits Si","x Diff Caloparticles - Rechits Si",200,-10,10);
   dist_y_cp_rec_si = new TH1F("y Diff Caloparticles - Rechits Si","y Diff Caloparticles - Rechits Si",200,-10,10);
   dist_x_y_cp_rec_si = new TH2F("x-y Diff Caloparticles - Rechits Si","x-y Diff Caloparticles - Rechits Si",200,-10,10,200,-10,10);
+
+  dist_dr_cp_rec_si_120 = new TH1F("Distance Caloparticles - Rechits Si 120","Distance Caloparticles - Rechits Si 120",100,0,1);
+  dist_eta_cp_rec_si_120 = new TH1F("Eta Diff Caloparticles - Rechits Si 120","Eta Diff Caloparticles - Rechits Si 120",200,-0.2,0.2);
+  dist_phi_cp_rec_si_120 = new TH1F("Phi Diff Caloparticles - Rechits Si 120","Phi Diff Caloparticles - Rechits Si 120",200,-0.2,0.2);
+  dist_eta_phi_cp_rec_si_120 = new TH2F("Eta Phi Diff Caloparticles - Rechits Si 120","Eta Phi Diff Caloparticles - Rechits Si 120",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_rec_si_120 = new TH1F("x Diff Caloparticles - Rechits Si 120","x Diff Caloparticles - Rechits Si 120",200,-10,10);
+  dist_y_cp_rec_si_120 = new TH1F("y Diff Caloparticles - Rechits Si 120","y Diff Caloparticles - Rechits Si 120",200,-10,10);
+  dist_x_y_cp_rec_si_120 = new TH2F("x-y Diff Caloparticles - Rechits Si 120","x-y Diff Caloparticles - Rechits Si 120",200,-10,10,200,-10,10);
+
+  dist_dr_cp_rec_si_200 = new TH1F("Distance Caloparticles - Rechits Si 200","Distance Caloparticles - Rechits Si 200",100,0,1);
+  dist_eta_cp_rec_si_200 = new TH1F("Eta Diff Caloparticles - Rechits Si 200","Eta Diff Caloparticles - Rechits Si 200",200,-0.2,0.2);
+  dist_phi_cp_rec_si_200 = new TH1F("Phi Diff Caloparticles - Rechits Si 200","Phi Diff Caloparticles - Rechits Si 200",200,-0.2,0.2);
+  dist_eta_phi_cp_rec_si_200 = new TH2F("Eta Phi Diff Caloparticles - Rechits Si 200","Eta Phi Diff Caloparticles - Rechits Si 200",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_rec_si_200 = new TH1F("x Diff Caloparticles - Rechits Si 200","x Diff Caloparticles - Rechits Si 200",200,-10,10);
+  dist_y_cp_rec_si_200 = new TH1F("y Diff Caloparticles - Rechits Si 200","y Diff Caloparticles - Rechits Si 200",200,-10,10);
+  dist_x_y_cp_rec_si_200 = new TH2F("x-y Diff Caloparticles - Rechits Si 200","x-y Diff Caloparticles - Rechits Si 200",200,-10,10,200,-10,10);
+
+  dist_dr_cp_rec_si_300 = new TH1F("Distance Caloparticles - Rechits Si 300","Distance Caloparticles - Rechits Si 300",100,0,1);
+  dist_eta_cp_rec_si_300 = new TH1F("Eta Diff Caloparticles - Rechits Si 300","Eta Diff Caloparticles - Rechits Si 300",200,-0.2,0.2);
+  dist_phi_cp_rec_si_300 = new TH1F("Phi Diff Caloparticles - Rechits Si 300","Phi Diff Caloparticles - Rechits Si 300",200,-0.2,0.2);
+  dist_eta_phi_cp_rec_si_300 = new TH2F("Eta Phi Diff Caloparticles - Rechits Si 300","Eta Phi Diff Caloparticles - Rechits Si 300",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_rec_si_300 = new TH1F("x Diff Caloparticles - Rechits Si 300","x Diff Caloparticles - Rechits Si 300",200,-10,10);
+  dist_y_cp_rec_si_300 = new TH1F("y Diff Caloparticles - Rechits Si 300","y Diff Caloparticles - Rechits Si 300",200,-10,10);
+  dist_x_y_cp_rec_si_300 = new TH2F("x-y Diff Caloparticles - Rechits Si 300","x-y Diff Caloparticles - Rechits Si 300",200,-10,10,200,-10,10);
 
   dist_dr_cp_rec_sc = new TH1F("Distance Caloparticles - Rechits Sc","Distance Caloparticles - Rechits Sc",100,0,1);
   dist_eta_cp_rec_sc = new TH1F("Eta Diff Caloparticles - Rechits Sc","Eta Diff Caloparticles - Rechits Sc",200,-0.2,0.2);
@@ -723,6 +1191,30 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   dist_y_cp_sim_si = new TH1F("y Diff Caloparticles - Simhits Si","y DiffCaloparticles - Rechits Si",200,-10,10);
   dist_x_y_cp_sim_si = new TH2F("x-y Diff Caloparticles - Simhits Si","x-y Diff Caloparticles - Rechits Si",200,-10,10,200,-10,10);
 
+  dist_dr_cp_sim_si_120 = new TH1F("Distance Caloparticles - Simhits Si 120","Distance Caloparticles - Rechits Si 120",100,0,1);
+  dist_eta_cp_sim_si_120 = new TH1F("Eta Diff Caloparticles - Simhits Si 120","Eta Diff Caloparticles - Rechits Si 120",200,-0.2,0.2);
+  dist_phi_cp_sim_si_120 = new TH1F("Phi Diff Caloparticles - Simhits Si 120","Phi Diff Caloparticles - Rechits Si 120",200,-0.2,0.2);
+  dist_eta_phi_cp_sim_si_120 = new TH2F("Eta Phi Diff Caloparticles - Simhits Si 120","Eta Phi Diff Caloparticles - Rechits Si 120",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_sim_si_120 = new TH1F("x Diff Caloparticles - Simhits Si 120","x Diff Caloparticles - Rechits Si 120",200,-10,10);
+  dist_y_cp_sim_si_120 = new TH1F("y Diff Caloparticles - Simhits Si 120","y DiffCaloparticles - Rechits Si 120",200,-10,10);
+  dist_x_y_cp_sim_si_120 = new TH2F("x-y Diff Caloparticles - Simhits Si 120","x-y Diff Caloparticles - Rechits Si 120",200,-10,10,200,-10,10);
+
+  dist_dr_cp_sim_si_200 = new TH1F("Distance Caloparticles - Simhits Si 200","Distance Caloparticles - Rechits Si 200",100,0,1);
+  dist_eta_cp_sim_si_200 = new TH1F("Eta Diff Caloparticles - Simhits Si 200","Eta Diff Caloparticles - Rechits Si 200",200,-0.2,0.2);
+  dist_phi_cp_sim_si_200 = new TH1F("Phi Diff Caloparticles - Simhits Si 200","Phi Diff Caloparticles - Rechits Si 200",200,-0.2,0.2);
+  dist_eta_phi_cp_sim_si_200 = new TH2F("Eta Phi Diff Caloparticles - Simhits Si 200","Eta Phi Diff Caloparticles - Rechits Si 200",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_sim_si_200 = new TH1F("x Diff Caloparticles - Simhits Si 200","x Diff Caloparticles - Rechits Si 200",200,-10,10);
+  dist_y_cp_sim_si_200 = new TH1F("y Diff Caloparticles - Simhits Si 200","y DiffCaloparticles - Rechits Si 200",200,-10,10);
+  dist_x_y_cp_sim_si_200 = new TH2F("x-y Diff Caloparticles - Simhits Si 200","x-y Diff Caloparticles - Rechits Si 200",200,-10,10,200,-10,10);
+
+  dist_dr_cp_sim_si_300 = new TH1F("Distance Caloparticles - Simhits Si 300","Distance Caloparticles - Rechits Si 300",100,0,1);
+  dist_eta_cp_sim_si_300 = new TH1F("Eta Diff Caloparticles - Simhits Si 300","Eta Diff Caloparticles - Rechits Si 300",200,-0.2,0.2);
+  dist_phi_cp_sim_si_300 = new TH1F("Phi Diff Caloparticles - Simhits Si 300","Phi Diff Caloparticles - Rechits Si 300",200,-0.2,0.2);
+  dist_eta_phi_cp_sim_si_300 = new TH2F("Eta Phi Diff Caloparticles - Simhits Si 300","Eta Phi Diff Caloparticles - Rechits Si 300",200,-0.2,0.2,200,-0.2,0.2);
+  dist_x_cp_sim_si_300 = new TH1F("x Diff Caloparticles - Simhits Si 300","x Diff Caloparticles - Rechits Si 300",200,-10,10);
+  dist_y_cp_sim_si_300 = new TH1F("y Diff Caloparticles - Simhits Si 300","y DiffCaloparticles - Rechits Si 300",200,-10,10);
+  dist_x_y_cp_sim_si_300 = new TH2F("x-y Diff Caloparticles - Simhits Si 300","x-y Diff Caloparticles - Rechits Si 300",200,-10,10,200,-10,10);
+
   dist_dr_cp_sim_sc = new TH1F("Distance Caloparticles - Simhits Sc","Distance Caloparticles - Rechits Sc",100,0,1);
   dist_eta_cp_sim_sc = new TH1F("Eta Diff Caloparticles - Simhits Sc","Eta Diff Caloparticles - Rechits Sc",200,-0.2,0.2);
   dist_phi_cp_sim_sc = new TH1F("Phi Diff Caloparticles - Simhits Sc","Phi Diff Caloparticles - Rechits Sc",200,-0.2,0.2);
@@ -730,6 +1222,127 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   dist_x_cp_sim_sc = new TH1F("x Diff Caloparticles - Simhits Sc","x Diff Caloparticles - Rechits Sc",200,-10,10);
   dist_y_cp_sim_sc = new TH1F("y Diff Caloparticles - Simhits Sc","y DiffCaloparticles - Rechits Sc",200,-10,10);
   dist_x_y_cp_sim_sc = new TH2F("x-y Diff Caloparticles - Simhits Sc","x-y Diff Caloparticles - Rechits Sc",200,-10,10,200,-10,10);
+
+  for(int i=0;i<47;i++){
+
+    std::string x_cp_sim = "Diff x CP - Simhits: ";
+    std::string x_cp_rec = "Diff x CP - Rechits: ";
+    std::string x_cp_lc = "Diff x CP - LC: ";
+
+    std::string y_cp_sim = "Diff x CP - Simhits: ";
+    std::string y_cp_rec = "Diff x CP - Rechits: ";
+    std::string y_cp_lc = "Diff x CP - LC: ";
+
+    std::stringstream nlayer;
+    TString tname;
+    nlayer << std::setw(2) <<std::setfill('0') << i;
+    //ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
+
+    x_cp_sim += nlayer.str(); 
+    x_cp_rec += nlayer.str(); 
+    x_cp_lc += nlayer.str(); 
+
+    y_cp_sim += nlayer.str(); 
+    y_cp_rec += nlayer.str(); 
+    y_cp_lc += nlayer.str();
+    tname = nlayer.str();
+
+    // Total
+
+    dist_x_cp_sim_layer_histo[i] = new TH1F("Diff x CP - Simhits: Layer " + tname,"Diff x CP - Simhits: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_layer_histo[i] = new TH1F("Diff y CP - Simhits: Layer " + tname,"Diff y CP - Simhits: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_layer_histo[i] = new TH1F("Diff eta CP - Simhits: Layer " + tname,"Diff eta CP - Simhits: Layer " + tname,200,-0,0.2);
+    dist_phi_cp_sim_layer_histo[i] = new TH1F("Diff phi CP - Simhits: Layer " + tname,"Diff phi CP - Simhits: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_layer_histo[i] = new TH1F("Diff x CP - Rechits: Layer " + tname,"Diff x CP - Rechits: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_layer_histo[i] = new TH1F("Diff y CP - Rechits: Layer " + tname,"Diff y CP - Rechits: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_layer_histo[i] = new TH1F("Diff eta CP - Rechits: Layer " + tname,"Diff eta CP - Rechits: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_layer_histo[i] = new TH1F("Diff phi CP - Rechits: Layer " + tname,"Diff phi CP - Rechits: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_layer_histo[i] = new TH1F("Diff x CP - LCs: Layer " + tname,"Diff x CP - LCs: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_layer_histo[i] = new TH1F("Diff y CP - LCs: Layer " + tname,"Diff y CP - LCs: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_layer_histo[i] = new TH1F("Diff eta CP - LCs: Layer " + tname,"Diff eta CP - LCs: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_layer_histo[i] = new TH1F("Diff phi CP - LCs: Layer " + tname,"Diff phi CP - LCs: Layer " + tname,200,-0.2,0.2);
+
+    // Si
+
+    dist_x_cp_sim_si_layer_histo[i] = new TH1F("Diff x CP - Simhits Si: Layer " + tname,"Diff x CP - Simhits Si: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_si_layer_histo[i] = new TH1F("Diff y CP - Simhits Si: Layer " + tname,"Diff y CP - Simhits Si: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_si_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si: Layer " + tname,"Diff eta Simhits - LCs Si: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_sim_si_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si: Layer " + tname,"Diff phi Simhits - LCs Si: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_si_layer_histo[i] = new TH1F("Diff x CP - Rechits Si: Layer " + tname,"Diff x CP - Rechits Si: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_si_layer_histo[i] = new TH1F("Diff y CP - Rechits Si: Layer " + tname,"Diff y CP - Rechits Si: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_si_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si: Layer " + tname,"Diff eta CP - Rechits Si: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_si_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si: Layer " + tname,"Diff phi CP - Rechits Si: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_si_layer_histo[i] = new TH1F("Diff x CP - LCs Si: Layer " + tname,"Diff x CP - LCs Si: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_si_layer_histo[i] = new TH1F("Diff y CP - LCs Si: Layer " + tname,"Diff y CP - LCs Si: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_si_layer_histo[i] = new TH1F("Diff eta CP - LCs Si: Layer " + tname,"Diff eta CP - LCs Si: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_si_layer_histo[i] = new TH1F("Diff phi CP - LCs Si: Layer " + tname,"Diff phi CP - LCs Si: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_sim_si_120_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 120: Layer " + tname,"Diff x CP - Simhits Si 120: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_si_120_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 120: Layer " + tname,"Diff y CP - Simhits Si 120: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_si_120_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 120: Layer " + tname,"Diff eta Simhits - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_sim_si_120_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 120: Layer " + tname,"Diff phi Simhits - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_si_120_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 120: Layer " + tname,"Diff x CP - Rechits Si 120: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_si_120_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 120: Layer " + tname,"Diff y CP - Rechits Si 120: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_si_120_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 120: Layer " + tname,"Diff eta CP - Rechits Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_si_120_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 120: Layer " + tname,"Diff phi CP - Rechits Si 120: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_si_120_layer_histo[i] = new TH1F("Diff x CP - LCs Si 120: Layer " + tname,"Diff x CP - LCs Si 120: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_si_120_layer_histo[i] = new TH1F("Diff y CP - LCs Si 120: Layer " + tname,"Diff y CP - LCs Si 120: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_si_120_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 120: Layer " + tname,"Diff eta CP - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_si_120_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 120: Layer " + tname,"Diff phi CP - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_sim_si_200_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 200: Layer " + tname,"Diff x CP - Simhits Si 200: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_si_200_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 200: Layer " + tname,"Diff y CP - Simhits Si 200: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_si_200_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 200: Layer " + tname,"Diff eta Simhits - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_sim_si_200_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 200: Layer " + tname,"Diff phi Simhits - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_si_200_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 200: Layer " + tname,"Diff x CP - Rechits Si 200: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_si_200_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 200: Layer " + tname,"Diff y CP - Rechits Si 200: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_si_200_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 200: Layer " + tname,"Diff eta CP - Rechits Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_si_200_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 200: Layer " + tname,"Diff phi CP - Rechits Si 200: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_si_200_layer_histo[i] = new TH1F("Diff x CP - LCs Si 200: Layer " + tname,"Diff x CP - LCs Si 200: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_si_200_layer_histo[i] = new TH1F("Diff y CP - LCs Si 200: Layer " + tname,"Diff y CP - LCs Si 200: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_si_200_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 200: Layer " + tname,"Diff eta CP - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_si_200_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 200: Layer " + tname,"Diff phi CP - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_sim_si_300_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 300: Layer " + tname,"Diff x CP - Simhits Si 300: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_si_300_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 300: Layer " + tname,"Diff y CP - Simhits Si 300: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_si_300_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 300: Layer " + tname,"Diff eta Simhits - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_sim_si_300_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 300: Layer " + tname,"Diff phi Simhits - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_si_300_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 300: Layer " + tname,"Diff x CP - Rechits Si 300: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_si_300_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 300: Layer " + tname,"Diff y CP - Rechits Si 300: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_si_300_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 300: Layer " + tname,"Diff eta CP - Rechits Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_si_300_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 300: Layer " + tname,"Diff phi CP - Rechits Si 300: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_si_300_layer_histo[i] = new TH1F("Diff x CP - LCs Si 300: Layer " + tname,"Diff x CP - LCs Si 300: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_si_300_layer_histo[i] = new TH1F("Diff y CP - LCs Si 300: Layer " + tname,"Diff y CP - LCs Si 300: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_si_300_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 300: Layer " + tname,"Diff eta CP - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_si_300_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 300: Layer " + tname,"Diff phi CP - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+
+    // Scintillator
+
+    dist_x_cp_sim_sc_layer_histo[i] = new TH1F("Diff x CP - Simhits Scintillator: Layer " + tname,"Diff x CP - Simhits Scintillator: Layer " + tname,200,-10,10);
+    dist_y_cp_sim_sc_layer_histo[i] = new TH1F("Diff y CP - Simhits Scintillator: Layer " + tname,"Diff y CP - Simhits Scintillator: Layer " + tname,200,-10,10);
+    dist_eta_cp_sim_sc_layer_histo[i] = new TH1F("Diff eta CP - Simhits Scintillator: Layer " + tname,"Diff eta Simhits - Simhits Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_sim_sc_layer_histo[i] = new TH1F("Diff phi CP - Simhits Scintillator: Layer " + tname,"Diff phi Simhits - Simhits Scintillator: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_rec_sc_layer_histo[i] = new TH1F("Diff x CP - Rechits Scintillator: Layer " + tname,"Diff x CP - Rechits Scintillator: Layer " + tname,200,-10,10);
+    dist_y_cp_rec_sc_layer_histo[i] = new TH1F("Diff y CP - Rechits Scintillator: Layer " + tname,"Diff y CP - Rechits Scintillator: Layer " + tname,200,-10,10);
+    dist_eta_cp_rec_sc_layer_histo[i] = new TH1F("Diff eta CP - Rechits Scintillator: Layer " + tname,"Diff eta CP - Rechits Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_rec_sc_layer_histo[i] = new TH1F("Diff phi CP - Rechits Scintillator: Layer " + tname,"Diff phi CP - Rechits Scintillator: Layer " + tname,200,-0.2,0.2);
+
+    dist_x_cp_lc_sc_layer_histo[i] = new TH1F("Diff x CP - LCs Scintillator: Layer " + tname,"Diff x CP - LCs Scintillator: Layer " + tname,200,-10,10);
+    dist_y_cp_lc_sc_layer_histo[i] = new TH1F("Diff y CP - LCs Scintillator: Layer " + tname,"Diff y CP - LCs Scintillator: Layer " + tname,200,-10,10);
+    dist_eta_cp_lc_sc_layer_histo[i] = new TH1F("Diff eta CP - LCs Scintillator: Layer " + tname,"Diff eta CP - LCs Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_phi_cp_lc_sc_layer_histo[i] = new TH1F("Diff phi CP - LCs Scintillator: Layer " + tname,"Diff phi CP - LCs Scintillator: Layer " + tname,200,-0.2,0.2);
+  }
 
 }
 
@@ -741,15 +1354,29 @@ EfficiencyStudies::~EfficiencyStudies() {
 
 
   //TLegend *leg = new TLegend(0.68,0.72,0.98,0.92); // Is dynamic memory allocation necessary?
+
   TCanvas *c1 = new TCanvas("c1","c1"); // Is dynamic memory allocation necessary?
 
   std::vector<int> colors = {1, 4, 2};
   TString folder = "/eos/user/m/mmatthew/www/Analyzer/"+eta_+"/";
   std::vector<float> pos = {0.70,0.75,0.9,0.9};
+  std::vector<TString> axes;
+
+
+  // Energy Histograms
+
+  axes={"Occurence", "Energy"};
+
+  createTH1Plot(c1, energy_rechits_histo, "EnergySimhits.png", axes, folder);
+
+  // Missing Hits Plots
+
+  axes = {"Layer", "Events"};
+  createTH2Plot(c1, missing_simhits_histo, "MissingSimhits.png", axes, folder);
 
   // Validation Plots
 
-  std::vector<TString> axes = {"# Particles", "# Events"};
+  axes = {"# Particles", "# Events"};
   createTH1Plot(c1, val_particle__sim_histo, "SimParticles.png", axes, folder);
 
   axes = {"# Clusters","# Occurence"};
@@ -773,38 +1400,72 @@ EfficiencyStudies::~EfficiencyStudies() {
   TString tname;
   TString ttitle;
 
-  for(int i=0; i<47; i++){
+  for(int i=1; i<48; i++){
+
     // Total hits
     std::stringstream ss;
-    ss << "Layer" <<std::setw(2) << std::setfill('2') << i <<".png";
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
     tname = ss.str();
 
     std::stringstream title;
-    title << "Total Hits in Layer " << std::setfill('2') << i;
+    title << "Total Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
-    hists = {hit_layer_sim_histo[i], hit_layer_rec_histo[i], hit_layer_lc_histo[i]};
+    hists = {hit_layer_sim_histo[i-1], hit_layer_rec_histo[i-1], hit_layer_lc_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
     createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
 
     // Si hits
     ss.str("");
-    ss << "Layer" <<std::setw(2) << std::setfill('2') << i <<"_si.png";
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si.png";
     tname = ss.str();
 
     title.str("");
-    title << "Si Hits in Layer " << std::setfill('2') << i;
+    title << "Si Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
-    hists = {hit_layer_sim_si_histo[i], hit_layer_rec_si_histo[i], hit_layer_lc_si_histo[i]};
+    hists = {hit_layer_sim_si_histo[i-1], hit_layer_rec_si_histo[i-1], hit_layer_lc_si_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
+    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
+
+    // 120 hits
+    ss.str("");
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_120.png";
+    tname = ss.str();
+
+    title.str("");
+    title << "Si 120 Hits in Layer " << std::setfill('0') << i;
+    ttitle = title.str();
+    hists = {hit_layer_sim_si_120_histo[i-1], hit_layer_rec_si_120_histo[i-1], hit_layer_lc_si_120_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
+    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
+
+    // 200 hits
+    ss.str("");
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_200.png";
+    tname = ss.str();
+
+    title.str("");
+    title << "Si 200 Hits in Layer " << std::setfill('0') << i;
+    ttitle = title.str();
+    hists = {hit_layer_sim_si_200_histo[i-1], hit_layer_rec_si_200_histo[i-1], hit_layer_lc_si_200_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
+    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
+
+    // 300 hits
+    ss.str("");
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_300.png";
+    tname = ss.str();
+
+    title.str("");
+    title << "Si 300 Hits in Layer " << std::setfill('0') << i;
+    ttitle = title.str();
+    hists = {hit_layer_sim_si_300_histo[i-1], hit_layer_rec_si_300_histo[i-1], hit_layer_lc_si_300_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
     createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
 
     // Sc hits
     ss.str("");
-    ss << "Layer" <<std::setw(2) << std::setfill('2') << i <<"_sc.png";
+    ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_sc.png";
     tname = ss.str();
 
     title.str("");
-    title << "Scintillator Hits in Layer " << std::setfill('2') << i;
+    title << "Scintillator Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
-    hists = {hit_layer_sim_sc_histo[i], hit_layer_rec_sc_histo[i], hit_layer_lc_sc_histo[i]};
+    hists = {hit_layer_sim_sc_histo[i-1], hit_layer_rec_sc_histo[i-1], hit_layer_lc_sc_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
     createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
   } 
 
@@ -830,6 +1491,9 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   createTH1Plot(c1, det_sim_histo,"LayerwiseSimhits.png", axes, folder);
   createTH1Plot(c1, det_sim_si_histo,"LayerwiseSimhits_Si.png", axes, folder);
+  createTH1Plot(c1, det_sim_si_120_histo,"LayerwiseSimhits_Si_120.png", axes, folder);
+  createTH1Plot(c1, det_sim_si_200_histo,"LayerwiseSimhits_Si_200.png", axes, folder);
+  createTH1Plot(c1, det_sim_si_300_histo,"LayerwiseSimhits_Si_300.png", axes, folder);
   createTH1Plot(c1, det_sim_sc_histo,"LayerwiseSimhits_Sc.png", axes, folder);
 
   hists = {det_sim_histo, det_sim_si_histo, det_sim_sc_histo};
@@ -837,6 +1501,9 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   createTH1Plot(c1, det_rec_histo,"LayerwiseRechits.png", axes, folder);
   createTH1Plot(c1, det_rec_si_histo,"LayerwiseRechits_Si.png", axes, folder);
+  createTH1Plot(c1, det_rec_si_120_histo,"LayerwiseRechits_Si_120.png", axes, folder);
+  createTH1Plot(c1, det_rec_si_200_histo,"LayerwiseRechits_Si_200.png", axes, folder);
+  createTH1Plot(c1, det_rec_si_300_histo,"LayerwiseRechits_Si_300.png", axes, folder);
   createTH1Plot(c1, det_rec_sc_histo,"LayerwiseRechits_Sc.png", axes, folder);
 
   hists = {det_rec_histo, det_rec_si_histo, det_rec_sc_histo};
@@ -844,6 +1511,9 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   createTH1Plot(c1, det_lc_histo,"LayerwiseLChits.png", axes, folder);
   createTH1Plot(c1, det_lc_si_histo,"LayerwiseLChits_Si.png", axes, folder);
+  createTH1Plot(c1, det_lc_si_120_histo,"LayerwiseLChits_Si_120.png", axes, folder);
+  createTH1Plot(c1, det_lc_si_200_histo,"LayerwiseLChits_Si_200.png", axes, folder);
+  createTH1Plot(c1, det_lc_si_300_histo,"LayerwiseLChits_Si_300.png", axes, folder);
   createTH1Plot(c1, det_lc_sc_histo,"LayerwiseLChits_Sc.png", axes, folder);
 
   hists = {det_lc_histo, det_lc_si_histo, det_lc_sc_histo};
@@ -875,6 +1545,39 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   hists = {connectivity_sim_si_histo, connectivity_rec_si_histo, connectivity_lc_si_histo};
   createTHSPlot(c1, colors, hists, "Connectivity_Stack_Si.png", axes, legend, pos, folder, "Si Connectivity");
+
+  createTH1Plot(c1, connectivity_lc_si_120_histo,"Connectivity_LC_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_rec_si_120_histo,"Connectivity_RecCluster_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_sim_si_120_histo,"Connectivity_SimCluster_Si_120.png", axes, folder+"/Thickness");
+
+  connectivity_lc_si_120_histo ->SetStats(0);
+  connectivity_rec_si_120_histo ->SetStats(0);
+  connectivity_sim_si_120_histo ->SetStats(0);
+
+  hists = {connectivity_sim_si_120_histo, connectivity_rec_si_120_histo, connectivity_lc_si_120_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Stack_Si_120.png", axes, legend, pos, folder+"/Thickness", "Si 120 Connectivity");
+
+  createTH1Plot(c1, connectivity_lc_si_200_histo,"Connectivity_LC_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_rec_si_200_histo,"Connectivity_RecCluster_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_sim_si_200_histo,"Connectivity_SimCluster_Si_200.png", axes, folder+"/Thickness");
+
+  connectivity_lc_si_200_histo ->SetStats(0);
+  connectivity_rec_si_200_histo ->SetStats(0);
+  connectivity_sim_si_200_histo ->SetStats(0);
+
+  hists = {connectivity_sim_si_200_histo, connectivity_rec_si_200_histo, connectivity_lc_si_200_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Si 200 Connectivity");
+
+  createTH1Plot(c1, connectivity_lc_si_300_histo,"Connectivity_LC_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_rec_si_300_histo,"Connectivity_RecCluster_Si_300.png", axes, folder);
+  createTH1Plot(c1, connectivity_sim_si_300_histo,"Connectivity_SimCluster_Si_300.png", axes, folder+"/Thickness"+"/Thickness");
+
+  connectivity_lc_si_300_histo ->SetStats(0);
+  connectivity_rec_si_300_histo ->SetStats(0);
+  connectivity_sim_si_300_histo ->SetStats(0);
+
+  hists = {connectivity_sim_si_300_histo, connectivity_rec_si_300_histo, connectivity_lc_si_300_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Si 300 Connectivity");
 
   createTH1Plot(c1, connectivity_lc_sc_histo,"Connectivity_LC_Sc.png", axes, folder);
   createTH1Plot(c1, connectivity_rec_sc_histo,"Connectivity_RecCluster_Sc.png", axes, folder);
@@ -917,9 +1620,43 @@ EfficiencyStudies::~EfficiencyStudies() {
   hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
   createTHSPlot(c1, colors, hists, tname+"Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_sc_histo,tname+"LC_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_sc_histo,tname+"RecCluster_Sc.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_sc_histo,tname+"SimCluster_Sc.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_lc_si_120_histo,tname+"LC_Si_120.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_si_120_histo,tname+"RecCluster_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_si_120_histo,tname+"SimCluster_Si_120.png", axes, folder+"/Thickness"+"/Thickness");
+
+  connectivity_skip_lc_si_120_histo ->SetStats(0);
+  connectivity_skip_rec_si_120_histo ->SetStats(0);
+  connectivity_skip_sim_si_120_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_si_120_histo, connectivity_skip_rec_si_120_histo, connectivity_skip_lc_si_120_histo};
+  createTHSPlot(c1, colors, hists, tname+"Stack_Si_120.png", axes, legend, pos, folder+"/Thickness", "Skip Si 120 Connectivity");
+
+  createTH1Plot(c1, connectivity_skip_lc_si_200_histo,tname+"LC_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_si_200_histo,tname+"RecCluster_Si_200.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_si_200_histo,tname+"SimCluster_Si_200.png", axes, folder+"/Thickness"+"/Thickness");
+
+  connectivity_skip_lc_si_200_histo ->SetStats(0);
+  connectivity_skip_rec_si_200_histo ->SetStats(0);
+  connectivity_skip_sim_si_200_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
+  createTHSPlot(c1, colors, hists, tname+"Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Skip Si 200 Connectivity");
+
+  createTH1Plot(c1, connectivity_skip_lc_si_300_histo,tname+"LC_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_si_300_histo,tname+"RecCluster_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_si_300_histo,tname+"SimCluster_Si_300.png", axes, folder+"/Thickness");
+
+  connectivity_skip_lc_si_300_histo ->SetStats(0);
+  connectivity_skip_rec_si_300_histo ->SetStats(0);
+  connectivity_skip_sim_si_300_histo ->SetStats(0);
+
+  hists = {connectivity_skip_sim_si_300_histo, connectivity_skip_rec_si_300_histo, connectivity_skip_lc_si_300_histo};
+  createTHSPlot(c1, colors, hists, tname+"Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Skip Si 300 Connectivity");
+
+
+  createTH1Plot(c1, connectivity_skip_lc_sc_histo,tname+"LC_Sc.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_sc_histo,tname+"RecCluster_Sc.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_sc_histo,tname+"SimCluster_Sc.png", axes, folder+"/Thickness");
 
   connectivity_skip_lc_sc_histo ->SetStats(0);
   connectivity_skip_rec_sc_histo ->SetStats(0);
@@ -941,18 +1678,51 @@ EfficiencyStudies::~EfficiencyStudies() {
   connectivity_max_sim_histo ->SetStats(0);
 
   hists = {connectivity_max_sim_histo, connectivity_max_rec_histo, connectivity_max_lc_histo};
-  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack.png", axes, legend, {0.40,0.73,0.6,0.88}, folder, "Max Total Connectivity");
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack.png", axes, legend, {0.40,0.73,0.6,0.88}, folder+"/Thickness", "Max Total Connectivity");
 
-  createTH1Plot(c1, connectivity_max_lc_si_histo,"Connectivity_Max_LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_lc_si_histo,"Connectivity_Max_LC_Si.png", axes, folder+"/Thickness");
   createTH1Plot(c1, connectivity_max_rec_si_histo,"Connectivity_Max_RecCluster_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_max_sim_si_histo,"Connectivity_Max_SimCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_si_histo,"Connectivity_Max_SimCluster_Si.png", axes, folder+"/Thickness"+"/Thickness");
 
   connectivity_max_lc_si_histo ->SetStats(0);
   connectivity_max_rec_si_histo ->SetStats(0);
   connectivity_max_sim_si_histo ->SetStats(0);
 
   hists = {connectivity_max_sim_si_histo, connectivity_max_rec_si_histo, connectivity_max_lc_si_histo};
-  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si.png", axes, legend, pos, folder, "Max Si Connectivity");
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si.png", axes, legend, pos, folder+"/Thickness", "Max Si Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_si_120_histo,"Connectivity_Max_LC_Si_120.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_rec_si_120_histo,"Connectivity_Max_RecCluster_Si_120.png", axes, folder);
+  createTH1Plot(c1, connectivity_max_sim_si_120_histo,"Connectivity_Max_SimCluster_Si_120.png", axes, folder);
+
+  connectivity_max_lc_si_120_histo ->SetStats(0);
+  connectivity_max_rec_si_120_histo ->SetStats(0);
+  connectivity_max_sim_si_120_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_si_120_histo, connectivity_max_rec_si_120_histo, connectivity_max_lc_si_120_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si_120.png", axes, legend, pos, folder, "Max Si 120 Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_si_200_histo,"Connectivity_Max_LC_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_max_rec_si_200_histo,"Connectivity_Max_RecCluster_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_max_sim_si_200_histo,"Connectivity_Max_SimCluster_Si_200.png", axes, folder+"/Thickness");
+
+  connectivity_max_lc_si_200_histo ->SetStats(0);
+  connectivity_max_rec_si_200_histo ->SetStats(0);
+  connectivity_max_sim_si_200_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_si_200_histo, connectivity_max_rec_si_200_histo, connectivity_max_lc_si_200_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Max Si 200 Connectivity");
+
+  createTH1Plot(c1, connectivity_max_lc_si_300_histo,"Connectivity_Max_LC_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_max_rec_si_300_histo,"Connectivity_Max_RecCluster_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_max_sim_si_300_histo,"Connectivity_Max_SimCluster_Si_300.png", axes, folder+"/Thickness");
+
+  connectivity_max_lc_si_300_histo ->SetStats(0);
+  connectivity_max_rec_si_300_histo ->SetStats(0);
+  connectivity_max_sim_si_300_histo ->SetStats(0);
+
+  hists = {connectivity_max_sim_si_300_histo, connectivity_max_rec_si_300_histo, connectivity_max_lc_si_300_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Max_Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Max Si 300 Connectivity");
 
   createTH1Plot(c1, connectivity_max_lc_sc_histo,"Connectivity_Max_LC_Sc.png", axes, folder);
   createTH1Plot(c1, connectivity_max_rec_sc_histo,"Connectivity_Max_RecCluster_Sc.png", axes, folder);
@@ -988,6 +1758,39 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   hists = {connectivity_miss_sim_si_histo, connectivity_miss_rec_si_histo, connectivity_miss_lc_si_histo};
   createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Si.png", axes, legend, pos, folder, "Miss Si Connectivity");
+
+  createTH1Plot(c1, connectivity_miss_lc_si_120_histo,"Connectivity_Miss_LC_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_rec_si_120_histo,"Connectivity_Miss_RecCluster_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_sim_si_120_histo,"Connectivity_Miss_SimCluster_Si_120.png", axes, folder+"/Thickness");
+
+  connectivity_miss_lc_si_120_histo ->SetStats(0);
+  connectivity_miss_rec_si_120_histo ->SetStats(0);
+  connectivity_miss_sim_si_120_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_si_120_histo, connectivity_miss_rec_si_120_histo, connectivity_miss_lc_si_120_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Si_120.png", axes, legend, pos, folder+"/Thickness", "Miss Si 120 Connectivity");
+
+  createTH1Plot(c1, connectivity_miss_lc_si_200_histo,"Connectivity_Miss_LC_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_rec_si_200_histo,"Connectivity_Miss_RecCluster_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_sim_si_200_histo,"Connectivity_Miss_SimCluster_Si_200.png", axes, folder+"/Thickness");
+
+  connectivity_miss_lc_si_200_histo ->SetStats(0);
+  connectivity_miss_rec_si_200_histo ->SetStats(0);
+  connectivity_miss_sim_si_200_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_si_200_histo, connectivity_miss_rec_si_200_histo, connectivity_miss_lc_si_200_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Miss Si 200 Connectivity");
+
+  createTH1Plot(c1, connectivity_miss_lc_si_300_histo,"Connectivity_Miss_LC_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_rec_si_300_histo,"Connectivity_Miss_RecCluster_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_miss_sim_si_300_histo,"Connectivity_Miss_SimCluster_Si_300.png", axes, folder+"/Thickness");
+
+  connectivity_miss_lc_si_300_histo ->SetStats(0);
+  connectivity_miss_rec_si_300_histo ->SetStats(0);
+  connectivity_miss_sim_si_300_histo ->SetStats(0);
+
+  hists = {connectivity_miss_sim_si_300_histo, connectivity_miss_rec_si_300_histo, connectivity_miss_lc_si_300_histo};
+  createTHSPlot(c1, colors, hists, "Connectivity_Miss_Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Miss Si 300 Connectivity");
 
   createTH1Plot(c1, connectivity_miss_lc_sc_histo,"Connectivity_Miss_LC_Sc.png", axes, folder);
   createTH1Plot(c1, connectivity_miss_rec_sc_histo,"Connectivity_Miss_RecCluster_Sc.png", axes, folder);
@@ -1037,6 +1840,39 @@ EfficiencyStudies::~EfficiencyStudies() {
   hists = {eff_sim_rec_si_histo, eff_sim_lc_si_histo};
   createTHSPlot(c1, {4,2}, hists, "Efficiency_Plots_Si.png", axes, {"RecHits", "Lcs"},{0.15,0.15,0.35,0.25}, folder, "Si Efficiency");
 
+  TH1F *eff_sim_rec_si_120_histo = (TH1F*)det_rec_si_120_histo ->Clone("Efficiency Sim vs Rec (Si 120)");
+  eff_sim_rec_si_120_histo->SetLineColor(kBlue);
+  TH1F *eff_sim_lc_si_120_histo = (TH1F*)det_lc_si_120_histo ->Clone("Efficiency Sim vs LC (Si 120)");
+  eff_sim_lc_si_120_histo->SetLineColor(kRed);
+
+  eff_sim_rec_si_120_histo->Divide(det_sim_si_120_histo);
+  eff_sim_lc_si_120_histo->Divide(det_sim_si_120_histo);
+
+  hists = {eff_sim_rec_si_120_histo, eff_sim_lc_si_120_histo};
+  createTHSPlot(c1, {4,2}, hists, "Efficiency_Plots_Si_120.png", axes, {"RecHits", "Lcs"},{0.15,0.15,0.35,0.25}, folder+"/Thickness", "Si 120 Efficiency");
+
+  TH1F *eff_sim_rec_si_200_histo = (TH1F*)det_rec_si_200_histo ->Clone("Efficiency Sim vs Rec (Si 200)");
+  eff_sim_rec_si_200_histo->SetLineColor(kBlue);
+  TH1F *eff_sim_lc_si_200_histo = (TH1F*)det_lc_si_200_histo ->Clone("Efficiency Sim vs LC (Si 200)");
+  eff_sim_lc_si_200_histo->SetLineColor(kRed);
+
+  eff_sim_rec_si_200_histo->Divide(det_sim_si_200_histo);
+  eff_sim_lc_si_200_histo->Divide(det_sim_si_200_histo);
+
+  hists = {eff_sim_rec_si_200_histo, eff_sim_lc_si_200_histo};
+  createTHSPlot(c1, {4,2}, hists, "Efficiency_Plots_Si_200.png", axes, {"RecHits", "Lcs"},{0.15,0.15,0.35,0.25}, folder+"/Thickness", "Si 200 Efficiency");
+
+  TH1F *eff_sim_rec_si_300_histo = (TH1F*)det_rec_si_300_histo ->Clone("Efficiency Sim vs Rec (Si 300)");
+  eff_sim_rec_si_300_histo->SetLineColor(kBlue);
+  TH1F *eff_sim_lc_si_300_histo = (TH1F*)det_lc_si_300_histo ->Clone("Efficiency Sim vs LC (Si 300)");
+  eff_sim_lc_si_300_histo->SetLineColor(kRed);
+
+  eff_sim_rec_si_300_histo->Divide(det_sim_si_300_histo);
+  eff_sim_lc_si_300_histo->Divide(det_sim_si_300_histo);
+
+  hists = {eff_sim_rec_si_300_histo, eff_sim_lc_si_300_histo};
+  createTHSPlot(c1, {4,2}, hists, "Efficiency_Plots_Si_300.png", axes, {"RecHits", "Lcs"},{0.15,0.15,0.35,0.25}, folder+"/Thickness", "Si 300 Efficiency");
+
   TH1F *eff_sim_rec_sc_histo = (TH1F*)det_rec_sc_histo ->Clone("Efficiency Sim vs Rec (Scintillator)");
   eff_sim_rec_sc_histo->SetLineColor(kRed);
   TH1F *eff_sim_lc_sc_histo = (TH1F*)det_lc_sc_histo ->Clone("Efficiency Sim vs LC (Scintillator)");
@@ -1071,6 +1907,18 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH1Plot(c1, dist_eta_cp_rec_si,"Diff_Eta_CP_Rec_Si.png", axes, folder);
   createTH1Plot(c1, dist_eta_cp_lc_si, "Diff_Eta_CP_LC_Si.png", axes, folder);
 
+  createTH1Plot(c1, dist_eta_cp_sim_si_120,"Diff_Eta_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_rec_si_120,"Diff_Eta_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_lc_si_120, "Diff_Eta_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_eta_cp_sim_si_200,"Diff_Eta_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_rec_si_200,"Diff_Eta_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_lc_si_200, "Diff_Eta_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_eta_cp_sim_si_300,"Diff_Eta_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_rec_si_300,"Diff_Eta_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_eta_cp_lc_si_300, "Diff_Eta_CP_LC_Si_300.png", axes, folder+"/Thickness");
+
   createTH1Plot(c1, dist_eta_cp_sim_sc,"Diff_Eta_CP_Sim_Sc.png", axes, folder);
   createTH1Plot(c1, dist_eta_cp_rec_sc,"Diff_Eta_CP_Rec_Sc.png", axes, folder);
   createTH1Plot(c1, dist_eta_cp_lc_sc, "Diff_Eta_CP_LC_Sc.png", axes, folder);
@@ -1083,6 +1931,18 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH1Plot(c1, dist_phi_cp_sim_si,"Diff_Phi_CP_Sim_Si.png", axes, folder);
   createTH1Plot(c1, dist_phi_cp_rec_si,"Diff_Phi_CP_Rec_Si.png", axes, folder);
   createTH1Plot(c1, dist_phi_cp_lc_si, "Diff_Phi_CP_LC_Si.png", axes, folder);
+
+  createTH1Plot(c1, dist_phi_cp_sim_si_120,"Diff_Phi_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_rec_si_120,"Diff_Phi_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_lc_si_120, "Diff_Phi_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_phi_cp_sim_si_200,"Diff_Phi_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_rec_si_200,"Diff_Phi_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_lc_si_200, "Diff_Phi_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_phi_cp_sim_si_300,"Diff_Phi_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_rec_si_300,"Diff_Phi_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_phi_cp_lc_si_300, "Diff_Phi_CP_LC_Si_300.png", axes, folder+"/Thickness");
 
   createTH1Plot(c1, dist_phi_cp_sim_sc,"Diff_Phi_CP_Sim_Sc.png", axes, folder);
   createTH1Plot(c1, dist_phi_cp_rec_sc,"Diff_Phi_CP_Rec_Sc.png", axes, folder);
@@ -1097,9 +1957,21 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH2Plot(c1,dist_eta_phi_cp_rec_si,"Diff_Eta_Phi_CP_Rec_Si.png", axes, folder);
   createTH2Plot(c1,dist_eta_phi_cp_lc_si,"Diff_Eta_Phi_CP_LC_Si.png", axes, folder);
 
-  createTH2Plot(c1,dist_eta_phi_cp_sim,"Diff_Eta_Phi_CP_Sim_Sc.png", axes, folder);
-  createTH2Plot(c1,dist_eta_phi_cp_rec,"Diff_Eta_Phi_CP_Rec_Sc.png", axes, folder);
-  createTH2Plot(c1,dist_eta_phi_cp_lc,"Diff_Eta_Phi_CP_LC_Sc.png", axes, folder);
+  createTH2Plot(c1,dist_eta_phi_cp_sim_si_120,"Diff_Eta_Phi_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_rec_si_120,"Diff_Eta_Phi_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_lc_si_120,"Diff_Eta_Phi_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH2Plot(c1,dist_eta_phi_cp_sim_si_200,"Diff_Eta_Phi_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_rec_si_200,"Diff_Eta_Phi_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_lc_si_200,"Diff_Eta_Phi_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH2Plot(c1,dist_eta_phi_cp_sim_si_300,"Diff_Eta_Phi_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_rec_si_300,"Diff_Eta_Phi_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_eta_phi_cp_lc_si_300,"Diff_Eta_Phi_CP_LC_Si_300.png", axes, folder+"/Thickness");
+
+  createTH2Plot(c1,dist_eta_phi_cp_sim_sc,"Diff_Eta_Phi_CP_Sim_Sc.png", axes, folder);
+  createTH2Plot(c1,dist_eta_phi_cp_rec_sc,"Diff_Eta_Phi_CP_Rec_Sc.png", axes, folder);
+  createTH2Plot(c1,dist_eta_phi_cp_lc_sc,"Diff_Eta_Phi_CP_LC_Sc.png", axes, folder);
 
   axes = {"#Delta x", "# Occurence"};
   createTH1Plot(c1, dist_x_cp_sim,"Diff_x_CP_Sim.png", axes, folder);
@@ -1109,6 +1981,18 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH1Plot(c1, dist_x_cp_sim_si,"Diff_x_CP_Sim_Si.png", axes, folder);
   createTH1Plot(c1, dist_x_cp_rec_si,"Diff_x_CP_Rec_Si.png", axes, folder);
   createTH1Plot(c1, dist_x_cp_lc_si, "Diff_x_CP_LC_Si.png", axes, folder);
+
+  createTH1Plot(c1, dist_x_cp_sim_si_120,"Diff_x_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_rec_si_120,"Diff_x_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_lc_si_120, "Diff_x_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_x_cp_sim_si_200,"Diff_x_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_rec_si_200,"Diff_x_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_lc_si_200, "Diff_x_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_x_cp_sim_si_300,"Diff_x_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_rec_si_300,"Diff_x_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_x_cp_lc_si_300, "Diff_x_CP_LC_Si_300.png", axes, folder+"/Thickness");
 
   createTH1Plot(c1, dist_x_cp_sim_sc,"Diff_x_CP_Sim_Sc.png", axes, folder);
   createTH1Plot(c1, dist_x_cp_rec_sc,"Diff_x_CP_Rec_Sc.png", axes, folder);
@@ -1123,6 +2007,18 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH1Plot(c1, dist_y_cp_rec_si,"Diff_y_CP_Rec_Si.png", axes, folder);
   createTH1Plot(c1, dist_y_cp_lc_si, "Diff_y_CP_LC_Si.png", axes, folder);
 
+  createTH1Plot(c1, dist_y_cp_sim_si_120,"Diff_y_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_rec_si_120,"Diff_y_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_lc_si_120, "Diff_y_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_y_cp_sim_si_200,"Diff_y_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_rec_si_200,"Diff_y_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_lc_si_200, "Diff_y_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH1Plot(c1, dist_y_cp_sim_si_300,"Diff_y_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_rec_si_300,"Diff_y_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, dist_y_cp_lc_si_300, "Diff_y_CP_LC_Si_300.png", axes, folder+"/Thickness");
+
   createTH1Plot(c1, dist_y_cp_sim_sc,"Diff_y_CP_Sim_Sc.png", axes, folder);
   createTH1Plot(c1, dist_y_cp_rec_sc,"Diff_y_CP_Rec_Sc.png", axes, folder);
   createTH1Plot(c1, dist_y_cp_lc_sc, "Diff_y_CP_LC_Sc.png", axes, folder);
@@ -1136,9 +2032,133 @@ EfficiencyStudies::~EfficiencyStudies() {
   createTH2Plot(c1,dist_x_y_cp_rec_si,"Diff_xy_CP_Rec_Si.png", axes, folder);
   createTH2Plot(c1,dist_x_y_cp_lc_si,"Diff_xy_CP_LC_Si.png", axes, folder);
 
+  createTH2Plot(c1,dist_x_y_cp_sim_si_120,"Diff_xy_CP_Sim_Si_120.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_rec_si_120,"Diff_xy_CP_Rec_Si_120.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_lc_si_120,"Diff_xy_CP_LC_Si_120.png", axes, folder+"/Thickness");
+
+  createTH2Plot(c1,dist_x_y_cp_sim_si_200,"Diff_xy_CP_Sim_Si_200.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_rec_si_200,"Diff_xy_CP_Rec_Si_200.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_lc_si_200,"Diff_xy_CP_LC_Si_200.png", axes, folder+"/Thickness");
+
+  createTH2Plot(c1,dist_x_y_cp_sim_si_300,"Diff_xy_CP_Sim_Si_300.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_rec_si_300,"Diff_xy_CP_Rec_Si_300.png", axes, folder+"/Thickness");
+  createTH2Plot(c1,dist_x_y_cp_lc_si_300,"Diff_xy_CP_LC_Si_300.png", axes, folder+"/Thickness");
+
   createTH2Plot(c1,dist_x_y_cp_sim_sc,"Diff_xy_CP_Sim_Sc.png", axes, folder);
   createTH2Plot(c1,dist_x_y_cp_rec_sc,"Diff_xy_CP_Rec_Sc.png", axes, folder);
   createTH2Plot(c1,dist_x_y_cp_lc_sc,"Diff_xy_CP_LC_Sc.png", axes, folder);
+
+
+  std::string cp_sim = "Diff_x_CP_Sim";
+  std::string cp_rec = "Diff_x_CP_Rec";
+  std::string cp_lc = "Diff_x_CP_LC";
+
+/*
+  for(int i=0; i<47; i++){
+
+    // Total
+
+    std::stringstream ss;
+    ss << "_Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
+    tname = ss.str();
+
+  axes = {"#Delta x", "#Delta y"};
+    createTH1Plot(c1,dist_x_cp_sim_layer_histo[i], "Diff_x_CP_Sim"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_layer_histo[i], "Diff_y_CP_Sim"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_layer_histo[i], "Diff_eta_CP_Sim"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_layer_histo[i], "Diff_phi_CP_Sim"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_layer_histo[i], "Diff_x_CP_rec"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_layer_histo[i], "Diff_y_CP_rec"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_layer_histo[i], "Diff_eta_CP_rec"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_layer_histo[i], "Diff_phi_CP_rec"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_layer_histo[i], "Diff_x_CP_lc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_layer_histo[i], "Diff_y_CP_lc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_layer_histo[i], "Diff_eta_CP_lc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_layer_histo[i], "Diff_phi_CP_lc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    // Si
+
+    createTH1Plot(c1,dist_x_cp_sim_si_layer_histo[i], "Diff_x_CP_Sim_Si"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_layer_histo[i], "Diff_y_CP_Sim_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_layer_histo[i], "Diff_eta_CP_Sim_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_layer_histo[i], "Diff_phi_CP_Sim_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_si_layer_histo[i], "Diff_x_CP_rec_Si"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_layer_histo[i], "Diff_y_CP_rec_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_layer_histo[i], "Diff_eta_CP_rec_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_layer_histo[i], "Diff_phi_CP_rec_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_si_layer_histo[i], "Diff_x_CP_lc_Si"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_layer_histo[i], "Diff_y_CP_lc_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_layer_histo[i], "Diff_eta_CP_lc_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_layer_histo[i], "Diff_phi_CP_lc_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_sim_si_120_layer_histo[i], "Diff_x_CP_Sim_Si_120"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_120_layer_histo[i], "Diff_y_CP_Sim_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_120_layer_histo[i], "Diff_eta_CP_Sim_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_120_layer_histo[i], "Diff_phi_CP_Sim_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_si_120_layer_histo[i], "Diff_x_CP_rec_Si_120"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_120_layer_histo[i], "Diff_y_CP_rec_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_120_layer_histo[i], "Diff_eta_CP_rec_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_120_layer_histo[i], "Diff_phi_CP_rec_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_si_120_layer_histo[i], "Diff_x_CP_lc_Si_120"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_120_layer_histo[i], "Diff_y_CP_lc_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_120_layer_histo[i], "Diff_eta_CP_lc_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_120_layer_histo[i], "Diff_phi_CP_lc_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_sim_si_200_layer_histo[i], "Diff_x_CP_Sim_Si_200"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_200_layer_histo[i], "Diff_y_CP_Sim_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_200_layer_histo[i], "Diff_eta_CP_Sim_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_200_layer_histo[i], "Diff_phi_CP_Sim_S_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_si_200_layer_histo[i], "Diff_x_CP_rec_Si_200"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_200_layer_histo[i], "Diff_y_CP_rec_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_200_layer_histo[i], "Diff_eta_CP_rec_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_200_layer_histo[i], "Diff_phi_CP_rec_Si_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_si_200_layer_histo[i], "Diff_x_CP_lc_Si_200"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_200_layer_histo[i], "Diff_y_CP_lc_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_200_layer_histo[i], "Diff_eta_CP_lc_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_200_layer_histo[i], "Diff_phi_CP_lc_Si_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_sim_si_300_layer_histo[i], "Diff_x_CP_Sim_Si_300"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_300_layer_histo[i], "Diff_y_CP_Sim_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_300_layer_histo[i], "Diff_eta_CP_Sim_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_300_layer_histo[i], "Diff_phi_CP_Sim_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_si_300_layer_histo[i], "Diff_x_CP_rec_Si_300"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_300_layer_histo[i], "Diff_y_CP_rec_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_300_layer_histo[i], "Diff_eta_CP_rec_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_300_layer_histo[i], "Diff_phi_CP_rec_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_si_300_layer_histo[i], "Diff_x_CP_lc_Si_300"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_300_layer_histo[i], "Diff_y_CP_lc_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_300_layer_histo[i], "Diff_eta_CP_lc_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_300_layer_histo[i], "Diff_phi_CP_lc_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+
+    // Scintillator
+
+    createTH1Plot(c1,dist_x_cp_sim_sc_layer_histo[i], "Diff_x_CP_Sim_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_sc_layer_histo[i], "Diff_y_CP_Sim_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_sc_layer_histo[i], "Diff_eta_CP_Sim_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_sc_layer_histo[i], "Diff_phi_CP_Sim_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_rec_sc_layer_histo[i], "Diff_x_CP_rec_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_sc_layer_histo[i], "Diff_y_CP_rec_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_sc_layer_histo[i], "Diff_eta_CP_rec_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_sc_layer_histo[i], "Diff_phi_CP_rec_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+
+    createTH1Plot(c1,dist_x_cp_lc_sc_layer_histo[i], "Diff_x_CP_lc_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_sc_layer_histo[i], "Diff_y_CP_lc_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_sc_layer_histo[i], "Diff_eta_CP_lc_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_sc_layer_histo[i], "Diff_phi_CP_lc_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+  }
+*/
 }
 
 
@@ -1282,12 +2302,21 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   std::vector<int> hit_layer_sim(47,0);
   std::vector<int> hit_layer_sim_si(47,0);
+  std::vector<int> hit_layer_sim_si_120(47,0);
+  std::vector<int> hit_layer_sim_si_200(47,0);
+  std::vector<int> hit_layer_sim_si_300(47,0);
   std::vector<int> hit_layer_sim_sc(47,0);
   std::vector<int> hit_layer_rec(47,0);
   std::vector<int> hit_layer_rec_si(47,0);
+  std::vector<int> hit_layer_rec_si_120(47,0);
+  std::vector<int> hit_layer_rec_si_200(47,0);
+  std::vector<int> hit_layer_rec_si_300(47,0);
   std::vector<int> hit_layer_rec_sc(47,0);
   std::vector<int> hit_layer_lc(47,0);
   std::vector<int> hit_layer_lc_si(47,0);
+  std::vector<int> hit_layer_lc_si_120(47,0);
+  std::vector<int> hit_layer_lc_si_200(47,0);
+  std::vector<int> hit_layer_lc_si_300(47,0);
   std::vector<int> hit_layer_lc_sc(47,0);
 
   /*
@@ -1319,6 +2348,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   // Loop over Caloparticles 
 
 
+
   std::vector<DetId> tmprechits_; tmprechits_.clear();
   for (const auto& it_cp : cps) {
     // do something with track parameters, e.g, plot the charge.
@@ -1328,6 +2358,20 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     cp_eta = it_cp.eta();
     cp_phi = it_cp.phi();
+
+
+    /*
+
+    // Check only one half plane of a circle
+
+    std::cout<< "Phi:"<< cp_phi << std::endl;
+
+    if(-M_PI < cp_phi && cp_phi <0){
+      std::cout << "Triggered" << std::endl;
+      continue;
+    }
+
+    */
 
     eta_calo -> Fill(cp_eta); // Investigation of Scintillator-Eta 2.9 discrepancy
     pid_cp_histo -> Fill(cp.pdgId());
@@ -1343,7 +2387,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
       const std::vector<SimTrack>& simt = simc.g4Tracks();
       for (const auto& it_simt : simt){
-        std::cout << it_simt <<endl;
+        //std::cout << it_simt <<endl;
         pid_sim_histo -> Fill(it_simt.type());
       }
 
@@ -1355,7 +2399,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
       const auto& sc_haf = simc.hits_and_fractions();
       //std::cout<<"CP number of Simhits:" << simc.numberOfSimHits() << std::endl;
-      std::cout<<"CP number of Rechits:" << simc.numberOfRecHits() << std::endl;
+      //std::cout<<"CP number of Rechits:" << simc.numberOfRecHits() << std::endl;
 
       for (const auto& it_sc_haf : sc_haf){
         nSimhits++;
@@ -1388,10 +2432,21 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         dist_y_cp_sim->Fill(ydist);
         dist_x_y_cp_sim->Fill(xdist,ydist);
 
+        dist_x_cp_sim_layer_histo[layer_-1]->Fill(xdist);
+        dist_y_cp_sim_layer_histo[layer_-1]->Fill(ydist);
+        dist_eta_cp_sim_layer_histo[layer_-1]->Fill(edist);
+        dist_phi_cp_sim_layer_histo[layer_-1]->Fill(phidist);
+
+
 
         // End of investigation
+
+        
       
         if(recHitTools_.isSilicon(detid_)){
+
+       
+
           hit_layer_sim_si[layer_-1]++;
 
           dist_dr_cp_sim_si->Fill(drdist);
@@ -1402,11 +2457,75 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_x_cp_sim_si->Fill(xdist);
           dist_y_cp_sim_si->Fill(ydist);
           dist_x_y_cp_sim_si->Fill(xdist,ydist);
-          
+
+          dist_x_cp_sim_si_layer_histo[layer_-1]->Fill(xdist);
+          dist_y_cp_sim_si_layer_histo[layer_-1]->Fill(ydist);
+          dist_eta_cp_sim_si_layer_histo[layer_-1]->Fill(edist);
+          dist_phi_cp_sim_si_layer_histo[layer_-1]->Fill(phidist);
+
+
+
+
+          if(recHitTools_.getSiThickness(detid_)==120){
+            hit_layer_sim_si_120[layer_-1]++;
+
+            dist_dr_cp_sim_si_120->Fill(drdist);
+            dist_eta_cp_sim_si_120->Fill(edist);
+            dist_phi_cp_sim_si_120->Fill(phidist);
+            dist_eta_phi_cp_sim_si_120->Fill(edist,phidist); 
+
+            dist_x_cp_sim_si_120->Fill(xdist);
+            dist_y_cp_sim_si_120->Fill(ydist);
+            dist_x_y_cp_sim_si_120->Fill(xdist,ydist);
+
+            dist_x_cp_sim_si_120_layer_histo[layer_-1]->Fill(xdist);
+            dist_y_cp_sim_si_120_layer_histo[layer_-1]->Fill(ydist);
+            dist_eta_cp_sim_si_120_layer_histo[layer_-1]->Fill(edist);
+            dist_phi_cp_sim_si_120_layer_histo[layer_-1]->Fill(phidist);
           }
+
+          if(recHitTools_.getSiThickness(detid_)==200){
+            hit_layer_sim_si_200[layer_-1]++;
+
+            dist_dr_cp_sim_si_200->Fill(drdist);
+            dist_eta_cp_sim_si_200->Fill(edist);
+            dist_phi_cp_sim_si_200->Fill(phidist);
+            dist_eta_phi_cp_sim_si_200->Fill(edist,phidist); 
+
+            dist_x_cp_sim_si_200->Fill(xdist);
+            dist_y_cp_sim_si_200->Fill(ydist);
+            dist_x_y_cp_sim_si_200->Fill(xdist,ydist);
+
+            dist_x_cp_sim_si_200_layer_histo[layer_-1]->Fill(xdist);
+            dist_y_cp_sim_si_200_layer_histo[layer_-1]->Fill(ydist);
+            dist_eta_cp_sim_si_200_layer_histo[layer_-1]->Fill(edist);
+            dist_phi_cp_sim_si_200_layer_histo[layer_-1]->Fill(phidist);
+          }
+
+          if(recHitTools_.getSiThickness(detid_)==300){
+            hit_layer_sim_si_300[layer_-1]++;
+
+            dist_dr_cp_sim_si_300->Fill(drdist);
+            dist_eta_cp_sim_si_300->Fill(edist);
+            dist_phi_cp_sim_si_300->Fill(phidist);
+            dist_eta_phi_cp_sim_si_300->Fill(edist,phidist); 
+
+            dist_x_cp_sim_si_300->Fill(xdist);
+            dist_y_cp_sim_si_300->Fill(ydist);
+            dist_x_y_cp_sim_si_300->Fill(xdist,ydist);
+
+            dist_x_cp_sim_si_300_layer_histo[layer_-1]->Fill(xdist);
+            dist_y_cp_sim_si_300_layer_histo[layer_-1]->Fill(ydist);
+            dist_eta_cp_sim_si_300_layer_histo[layer_-1]->Fill(edist);
+            dist_phi_cp_sim_si_300_layer_histo[layer_-1]->Fill(phidist);
+          }
+
+
+
+        }
         if(recHitTools_.isScintillator(detid_)){
+
           hit_layer_sim_sc[layer_-1]++;
-          std::cout<<"Scintillator hit"<<std::endl;
 
           dist_dr_cp_sim_sc->Fill(drdist);
           dist_eta_cp_sim_sc->Fill(edist);
@@ -1416,6 +2535,11 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_x_cp_sim_sc->Fill(xdist);
           dist_y_cp_sim_sc->Fill(ydist);
           dist_x_y_cp_sim_sc->Fill(xdist,ydist);
+
+          dist_x_cp_sim_sc_layer_histo[layer_-1]->Fill(xdist);
+          dist_y_cp_sim_sc_layer_histo[layer_-1]->Fill(ydist);
+          dist_eta_cp_sim_sc_layer_histo[layer_-1]->Fill(edist);
+          dist_phi_cp_sim_sc_layer_histo[layer_-1]->Fill(phidist);
         }
     
 	      hit_layer_sim[layer_-1]++;
@@ -1423,6 +2547,10 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         if (itcheck != hitMap.end()){
           tmprechits_.push_back(detid_);
           nRechits++;
+
+          // Fill energy histograms
+
+          energy_rechits_histo->Fill((it_sc_haf.second)*itcheck->second->energy());
 
           // Not necessary? Detid of Simhit and Rechit the same.
 
@@ -1443,7 +2571,13 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           //float drRecHitCP = getDr(rhPosition_x,rhPosition_y,cpPositionAtRecHit_x,cpPositionAtRecHit_y);
 
 
+          dist_x_cp_rec_layer_histo[layer_-1]->Fill(xdist);
+          dist_y_cp_rec_layer_histo[layer_-1]->Fill(ydist);
+          dist_eta_cp_rec_layer_histo[layer_-1]->Fill(edist);
+          dist_phi_cp_rec_layer_histo[layer_-1]->Fill(phidist);
+
           if(recHitTools_.isSilicon(detid_)){hit_layer_rec_si[layer_-1]++;
+
             //dist_dr_cp_rec_si->Fill(drdist);
             dist_eta_cp_rec_si->Fill(edist);
             dist_phi_cp_rec_si->Fill(phidist);
@@ -1452,9 +2586,70 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
             dist_x_cp_rec_si->Fill(xdist);
             dist_y_cp_rec_si->Fill(ydist);
             dist_x_y_cp_rec_si->Fill(xdist,ydist);
+
+            dist_x_cp_rec_si_layer_histo[layer_-1]->Fill(xdist);
+            dist_y_cp_rec_si_layer_histo[layer_-1]->Fill(ydist);
+            dist_eta_cp_rec_si_layer_histo[layer_-1]->Fill(edist);
+            dist_phi_cp_rec_si_layer_histo[layer_-1]->Fill(phidist);
+
+
+
+            if(recHitTools_.getSiThickness(detid_)==120){
+              dist_eta_cp_rec_si_120->Fill(edist);
+              dist_phi_cp_rec_si_120->Fill(phidist);
+              dist_eta_phi_cp_rec_si_120->Fill(edist,phidist); 
+
+              dist_x_cp_rec_si_120->Fill(xdist);
+              dist_y_cp_rec_si_120->Fill(ydist);
+              dist_x_y_cp_rec_si_120->Fill(xdist,ydist);
+
+              dist_x_cp_rec_si_120_layer_histo[layer_-1]->Fill(xdist);
+              dist_y_cp_rec_si_120_layer_histo[layer_-1]->Fill(ydist);
+              dist_eta_cp_rec_si_120_layer_histo[layer_-1]->Fill(edist);
+              dist_phi_cp_rec_si_120_layer_histo[layer_-1]->Fill(phidist);
+            }
+
+            if(recHitTools_.getSiThickness(detid_)==200){
+              dist_eta_cp_rec_si_200->Fill(edist);
+              dist_phi_cp_rec_si_200->Fill(phidist);
+              dist_eta_phi_cp_rec_si_200->Fill(edist,phidist); 
+
+              dist_x_cp_rec_si_200->Fill(xdist);
+              dist_y_cp_rec_si_200->Fill(ydist);
+              dist_x_y_cp_rec_si_200->Fill(xdist,ydist);
+
+              dist_x_cp_rec_si_200_layer_histo[layer_-1]->Fill(xdist);
+              dist_y_cp_rec_si_200_layer_histo[layer_-1]->Fill(ydist);
+              dist_eta_cp_rec_si_200_layer_histo[layer_-1]->Fill(edist);
+              dist_phi_cp_rec_si_200_layer_histo[layer_-1]->Fill(phidist);
+            }
+
+            if(recHitTools_.getSiThickness(detid_)==300){
+              dist_eta_cp_rec_si_300->Fill(edist);
+              dist_phi_cp_rec_si_300->Fill(phidist);
+              dist_eta_phi_cp_rec_si_300->Fill(edist,phidist); 
+
+              dist_x_cp_rec_si_300->Fill(xdist);
+              dist_y_cp_rec_si_300->Fill(ydist);
+              dist_x_y_cp_rec_si_300->Fill(xdist,ydist);
+
+              dist_x_cp_rec_si_300_layer_histo[layer_-1]->Fill(xdist);
+              dist_y_cp_rec_si_300_layer_histo[layer_-1]->Fill(ydist);
+              dist_eta_cp_rec_si_300_layer_histo[layer_-1]->Fill(edist);
+              dist_phi_cp_rec_si_300_layer_histo[layer_-1]->Fill(phidist);
+            }
+
+
+
           }
+
           if(recHitTools_.isScintillator(detid_)){
+
+ 
+
             hit_layer_rec_sc[layer_-1]++;
+
+
 
             //dist_dr_cp_rec_sc->Fill(drdist);
             dist_eta_cp_rec_sc->Fill(edist);
@@ -1464,6 +2659,11 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
             dist_x_cp_rec_sc->Fill(xdist);
             dist_y_cp_rec_sc->Fill(ydist);
             dist_x_y_cp_rec_sc->Fill(xdist,ydist);
+
+            dist_x_cp_rec_sc_layer_histo[layer_-1]->Fill(xdist);
+            dist_y_cp_rec_sc_layer_histo[layer_-1]->Fill(ydist);
+            dist_eta_cp_rec_sc_layer_histo[layer_-1]->Fill(edist);
+            dist_phi_cp_rec_sc_layer_histo[layer_-1]->Fill(phidist);
           }
 
 
@@ -1488,9 +2688,13 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   
 
   // Loop over LCs  
-
   
   for (const auto& it_lc : lcs) {
+
+    if(M_PI < cp_eta && cp_phi <0){
+      continue;
+    }
+
     nLC++;
     const std::vector<std::pair<DetId, float>> &hf = it_lc.hitsAndFractions();
 
@@ -1520,28 +2724,11 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         dist_x_cp_lc->Fill(cpPositionAtLC_x - it_lc.x());
         dist_y_cp_lc->Fill(cpPositionAtLC_y - it_lc.y());
 
-        /*
+	      dist_x_cp_lc_layer_histo[layer_-1]->Fill(xdist);
+	      dist_y_cp_lc_layer_histo[layer_-1]->Fill(ydist);
+	      dist_eta_cp_lc_layer_histo[layer_-1]->Fill(edist);
+	      dist_phi_cp_lc_layer_histo[layer_-1]->Fill(phidist);
 
-        std::cout << "Layer: " << layer_ <<std::endl;     
-
-        float edist = cp_eta - it_lc.eta();
-        float phidist = cp_phi - it_lc.phi();
-        float drdist = getDr(it_lc.eta(),it_lc.phi(),cp_eta,cp_phi);
-
-        std::cout<<"Eta distance: " << edist <<endl;
-        std::cout<<"phi distance: " << phidist <<endl;
-        std::cout<<"dr distance: " << drdist <<endl;
-
-        
-        dist_dr_sim_lc->Fill(drdist);
-        dist_eta_sim_lc->Fill(edist);
-        dist_phi_sim_lc->Fill(phidist);
-        dist_eta_phi_sim_lc->Fill(edist,phidist);
-      
-
-        */
-
-       // if (tmprechits_[i0] != hitMap.end()){
         if(recHitTools_.isSilicon(tmprechits_[idx_[i0]])){
           hit_layer_lc_si[layer_-1]++;
 
@@ -1553,11 +2740,79 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_x_cp_lc_si->Fill(xdist);
           dist_y_cp_lc_si->Fill(ydist);
           dist_x_y_cp_lc_si->Fill(xdist,ydist);
+
+	        dist_x_cp_lc_si_layer_histo[layer_-1]->Fill(xdist);
+	        dist_y_cp_lc_si_layer_histo[layer_-1]->Fill(ydist);
+
+	        dist_eta_cp_lc_si_layer_histo[layer_-1]->Fill(edist);
+	        dist_phi_cp_lc_si_layer_histo[layer_-1]->Fill(phidist);
+
+
+
+          if(recHitTools_.getSiThickness(detid_)==120){
+            hit_layer_lc_si_120[layer_-1]++;
+
+            //dist_dr_cp_lc_sc_120->Fill(drdist);
+            dist_eta_cp_lc_si_120->Fill(edist);
+            dist_phi_cp_lc_si_120->Fill(phidist);
+            dist_eta_phi_cp_lc_si_120->Fill(edist,phidist); 
+
+            dist_x_cp_lc_si_120->Fill(xdist);
+            dist_y_cp_lc_si_120->Fill(ydist);
+            dist_x_y_cp_lc_si_120->Fill(xdist,ydist);
+
+	          dist_x_cp_lc_si_120_layer_histo[layer_-1]->Fill(xdist);
+	          dist_y_cp_lc_si_120_layer_histo[layer_-1]->Fill(ydist);
+
+	          dist_eta_cp_lc_si_120_layer_histo[layer_-1]->Fill(edist);
+	          dist_phi_cp_lc_si_120_layer_histo[layer_-1]->Fill(phidist);
+          }
+
+          if(recHitTools_.getSiThickness(detid_)==200){
+            hit_layer_lc_si_200[layer_-1]++;
+
+            //dist_dr_cp_lc_sc_120->Fill(drdist);
+            dist_eta_cp_lc_si_200->Fill(edist);
+            dist_phi_cp_lc_si_200->Fill(phidist);
+            dist_eta_phi_cp_lc_si_200->Fill(edist,phidist); 
+
+            dist_x_cp_lc_si_200->Fill(xdist);
+            dist_y_cp_lc_si_200->Fill(ydist);
+            dist_x_y_cp_lc_si_200->Fill(xdist,ydist);
+
+	          dist_x_cp_lc_si_200_layer_histo[layer_-1]->Fill(xdist);
+	          dist_y_cp_lc_si_200_layer_histo[layer_-1]->Fill(ydist);
+
+	          dist_eta_cp_lc_si_200_layer_histo[layer_-1]->Fill(edist);
+	          dist_phi_cp_lc_si_200_layer_histo[layer_-1]->Fill(phidist);
+          }
+
+          if(recHitTools_.getSiThickness(detid_)==300){
+            hit_layer_lc_si_300[layer_-1]++;
+
+            //dist_dr_cp_lc_sc_300->Fill(drdist);
+            dist_eta_cp_lc_si_300->Fill(edist);
+            dist_phi_cp_lc_si_300->Fill(phidist);
+            dist_eta_phi_cp_lc_si_300->Fill(edist,phidist); 
+
+            dist_x_cp_lc_si_300->Fill(xdist);
+            dist_y_cp_lc_si_300->Fill(ydist);
+            dist_x_y_cp_lc_si_300->Fill(xdist,ydist);
+
+	          dist_x_cp_lc_si_300_layer_histo[layer_-1]->Fill(xdist);
+	          dist_y_cp_lc_si_300_layer_histo[layer_-1]->Fill(ydist);
+
+	          dist_eta_cp_lc_si_300_layer_histo[layer_-1]->Fill(edist);
+	          dist_phi_cp_lc_si_300_layer_histo[layer_-1]->Fill(phidist);
+          }
+
+
+    
+
         }
         if(recHitTools_.isScintillator(tmprechits_[idx_[i0]])){
           hit_layer_lc_sc[layer_-1]++;
 
-          //dist_dr_cp_lc_sc->Fill(drdist);
           dist_eta_cp_lc_sc->Fill(edist);
           dist_phi_cp_lc_sc->Fill(phidist);
           dist_eta_phi_cp_lc_sc->Fill(edist,phidist); 
@@ -1565,24 +2820,27 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_x_cp_lc_sc->Fill(xdist);
           dist_y_cp_lc_sc->Fill(ydist);
           dist_x_y_cp_lc_sc->Fill(xdist,ydist);
+
+	        dist_x_cp_lc_sc_layer_histo[layer_-1]->Fill(xdist);
+	        dist_y_cp_lc_sc_layer_histo[layer_-1]->Fill(ydist);
+
+          dist_eta_cp_lc_sc_layer_histo[layer_-1]->Fill(edist);
+          dist_phi_cp_lc_sc_layer_histo[layer_-1]->Fill(phidist);
         }
         hit_layer_lc[layer_-1]++;
-       // }
       }
     }
   }
   
-  
-
 
   cout<<"nTrack = "<<nTrack<<endl;
-  //cout<<"nCaloparticles = "<<nCalo<<endl;
-  //cout<<"nSimparticles = "<<nSim<<endl;
-  //cout<<"nLCparticles = "<<nLC<<endl;
+  cout<<"nCaloparticles = "<<nCalo<<endl;
+  cout<<"nSimparticles = "<<nSim<<endl;
+  cout<<"nLCparticles = "<<nLC<<endl;
   cout<<"nSimhits = "<<nSimhits<<endl;
   cout<<"nRechits = "<<nRechits<<endl;
-  //cout << "Num of LCs = "<< lcs.size() <<endl ;
-  //cout<<"nLChits = "<<nLChits<<endl;
+  cout << "Num of LCs = "<< lcs.size() <<endl ;
+  cout<<"nLChits = "<<nLChits<<endl;
 
 
   hit_sim = nSimhits;
@@ -1604,6 +2862,18 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int reccluster_si_connectivity_counter = 0;
   int simcluster_si_connectivity_counter = 0;
 
+  int lc_si_120_connectivity_counter = 0;
+  int reccluster_si_120_connectivity_counter = 0;
+  int simcluster_si_120_connectivity_counter = 0;
+
+  int lc_si_200_connectivity_counter = 0;
+  int reccluster_si_200_connectivity_counter = 0;
+  int simcluster_si_200_connectivity_counter = 0;
+
+  int lc_si_300_connectivity_counter = 0;
+  int reccluster_si_300_connectivity_counter = 0;
+  int simcluster_si_300_connectivity_counter = 0;
+
   int lc_sc_connectivity_counter = 0;
   int reccluster_sc_connectivity_counter = 0;
   int simcluster_sc_connectivity_counter = 0;
@@ -1615,6 +2885,19 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int max_lc_si_connectivity_counter = 0;
   int max_reccluster_si_connectivity_counter = 0;
   int max_simcluster_si_connectivity_counter = 0;
+
+  int max_lc_si_120_connectivity_counter = 0;
+  int max_reccluster_si_120_connectivity_counter = 0;
+  int max_simcluster_si_120_connectivity_counter = 0;
+
+  int max_lc_si_200_connectivity_counter = 0;
+  int max_reccluster_si_200_connectivity_counter = 0;
+  int max_simcluster_si_200_connectivity_counter = 0;
+
+  int max_lc_si_300_connectivity_counter = 0;
+  int max_reccluster_si_300_connectivity_counter = 0;
+  int max_simcluster_si_300_connectivity_counter = 0;
+
 
   int max_lc_sc_connectivity_counter = 0;
   int max_reccluster_sc_connectivity_counter = 0;
@@ -1628,6 +2911,18 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int miss_reccluster_si_connectivity_counter = 0;
   int miss_simcluster_si_connectivity_counter = 0;
 
+  int miss_lc_si_120_connectivity_counter = 0;
+  int miss_reccluster_si_120_connectivity_counter = 0;
+  int miss_simcluster_si_120_connectivity_counter = 0;
+
+  int miss_lc_si_200_connectivity_counter = 0;
+  int miss_reccluster_si_200_connectivity_counter = 0;
+  int miss_simcluster_si_200_connectivity_counter = 0;
+
+  int miss_lc_si_300_connectivity_counter = 0;
+  int miss_reccluster_si_300_connectivity_counter = 0;
+  int miss_simcluster_si_300_connectivity_counter = 0;
+
   int miss_lc_sc_connectivity_counter = 0;
   int miss_reccluster_sc_connectivity_counter = 0;
   int miss_simcluster_sc_connectivity_counter = 0;
@@ -1640,57 +2935,102 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int skip_reccluster_si_connectivity_counter = 0;
   int skip_simcluster_si_connectivity_counter = 0;
 
+  int skip_lc_si_120_connectivity_counter = 0;
+  int skip_reccluster_si_120_connectivity_counter = 0;
+  int skip_simcluster_si_120_connectivity_counter = 0;
+
+  int skip_lc_si_200_connectivity_counter = 0;
+  int skip_reccluster_si_200_connectivity_counter = 0;
+  int skip_simcluster_si_200_connectivity_counter = 0;
+
+  int skip_lc_si_300_connectivity_counter = 0;
+  int skip_reccluster_si_300_connectivity_counter = 0;
+  int skip_simcluster_si_300_connectivity_counter = 0;
+
   int skip_lc_sc_connectivity_counter = 0;
   int skip_reccluster_sc_connectivity_counter = 0;
   int skip_simcluster_sc_connectivity_counter = 0;
 
-  std::vector<int> skip_counters(9,0);
+  std::vector<int> skip_counters(18,0);
 
 
   std::vector<int> connectivity_counters = {lc_connectivity_counter, reccluster_connectivity_counter, simcluster_connectivity_counter,
                                lc_si_connectivity_counter, reccluster_si_connectivity_counter, simcluster_si_connectivity_counter,
+                               lc_si_120_connectivity_counter, reccluster_si_120_connectivity_counter, simcluster_si_120_connectivity_counter,
+                               lc_si_200_connectivity_counter, reccluster_si_200_connectivity_counter, simcluster_si_200_connectivity_counter,
+                               lc_si_300_connectivity_counter, reccluster_si_300_connectivity_counter, simcluster_si_300_connectivity_counter,
                                lc_sc_connectivity_counter, reccluster_sc_connectivity_counter, simcluster_sc_connectivity_counter};
 
   std::vector<int> connectivity_miss_counters = {miss_lc_connectivity_counter, miss_reccluster_connectivity_counter, miss_simcluster_connectivity_counter,
                                    miss_lc_si_connectivity_counter, miss_reccluster_si_connectivity_counter, miss_simcluster_si_connectivity_counter,
+                                   miss_lc_si_120_connectivity_counter, miss_reccluster_si_120_connectivity_counter, miss_simcluster_si_120_connectivity_counter,
+                                   miss_lc_si_200_connectivity_counter, miss_reccluster_si_200_connectivity_counter, miss_simcluster_si_200_connectivity_counter,
+                                   miss_lc_si_300_connectivity_counter, miss_reccluster_si_300_connectivity_counter, miss_simcluster_si_300_connectivity_counter,
                                    miss_lc_sc_connectivity_counter, miss_reccluster_sc_connectivity_counter, miss_simcluster_sc_connectivity_counter};
 
   std::vector<int> connectivity_max_counters = {max_lc_connectivity_counter, max_reccluster_connectivity_counter, max_simcluster_connectivity_counter,
                                    max_lc_si_connectivity_counter, max_reccluster_si_connectivity_counter, max_simcluster_si_connectivity_counter,
+                                   max_lc_si_120_connectivity_counter, max_reccluster_si_120_connectivity_counter, max_simcluster_si_120_connectivity_counter,
+                                   max_lc_si_200_connectivity_counter, max_reccluster_si_200_connectivity_counter, max_simcluster_si_200_connectivity_counter,
+                                   max_lc_si_300_connectivity_counter, max_reccluster_si_300_connectivity_counter, max_simcluster_si_300_connectivity_counter,
                                    max_lc_sc_connectivity_counter, max_reccluster_sc_connectivity_counter, max_simcluster_sc_connectivity_counter};
 
   std::vector<int> connectivity_skip_counters = {skip_lc_connectivity_counter, skip_reccluster_connectivity_counter, skip_simcluster_connectivity_counter,
                                skip_lc_si_connectivity_counter, skip_reccluster_si_connectivity_counter, skip_simcluster_si_connectivity_counter,
+                               skip_lc_si_120_connectivity_counter, skip_reccluster_si_120_connectivity_counter, skip_simcluster_si_120_connectivity_counter,
+                               skip_lc_si_200_connectivity_counter, skip_reccluster_si_200_connectivity_counter, skip_simcluster_si_200_connectivity_counter,
+                               skip_lc_si_300_connectivity_counter, skip_reccluster_si_300_connectivity_counter, skip_simcluster_si_300_connectivity_counter,
                                skip_lc_sc_connectivity_counter, skip_reccluster_sc_connectivity_counter, skip_simcluster_sc_connectivity_counter};
 
 
   std::vector<TH1F*> connectivity_histos = {connectivity_lc_histo, connectivity_rec_histo, connectivity_sim_histo,
                                connectivity_lc_si_histo, connectivity_rec_si_histo, connectivity_sim_si_histo,
+                               connectivity_lc_si_120_histo, connectivity_rec_si_120_histo, connectivity_sim_si_120_histo,
+                               connectivity_lc_si_200_histo, connectivity_rec_si_200_histo, connectivity_sim_si_200_histo,
+                               connectivity_lc_si_300_histo, connectivity_rec_si_300_histo, connectivity_sim_si_300_histo,
                                connectivity_lc_sc_histo, connectivity_rec_sc_histo, connectivity_sim_sc_histo};
 
   std::vector<TH1F*> connectivity_w_histos = {connectivity_w_lc_histo, connectivity_w_rec_histo, connectivity_w_sim_histo,
                                connectivity_w_lc_si_histo, connectivity_w_rec_si_histo, connectivity_w_sim_si_histo,
+                               connectivity_w_lc_si_120_histo, connectivity_w_rec_si_120_histo, connectivity_w_sim_si_120_histo,
+                               connectivity_w_lc_si_200_histo, connectivity_w_rec_si_200_histo, connectivity_w_sim_si_200_histo,
+                               connectivity_w_lc_si_300_histo, connectivity_w_rec_si_300_histo, connectivity_w_sim_si_300_histo,
                                connectivity_w_lc_sc_histo, connectivity_w_rec_sc_histo, connectivity_w_sim_sc_histo};
 
   std::vector<TH1F*> connectivity_max_histos = {connectivity_max_lc_histo, connectivity_max_rec_histo, connectivity_max_sim_histo,
                                connectivity_max_lc_si_histo, connectivity_max_rec_si_histo, connectivity_max_sim_si_histo,
+                               connectivity_max_lc_si_120_histo, connectivity_max_rec_si_120_histo, connectivity_max_sim_si_120_histo,
+                               connectivity_max_lc_si_200_histo, connectivity_max_rec_si_200_histo, connectivity_max_sim_si_200_histo,
+                               connectivity_max_lc_si_300_histo, connectivity_max_rec_si_300_histo, connectivity_max_sim_si_300_histo,
                                connectivity_max_lc_sc_histo, connectivity_max_rec_sc_histo, connectivity_max_sim_sc_histo};
 
   std::vector<TH1F*> connectivity_miss_histos = {connectivity_miss_lc_histo, connectivity_miss_rec_histo, connectivity_miss_sim_histo,
                                connectivity_miss_lc_si_histo, connectivity_miss_rec_si_histo, connectivity_miss_sim_si_histo,
+                               connectivity_miss_lc_si_120_histo, connectivity_miss_rec_si_120_histo, connectivity_miss_sim_si_120_histo,
+                               connectivity_miss_lc_si_200_histo, connectivity_miss_rec_si_200_histo, connectivity_miss_sim_si_200_histo,
+                               connectivity_miss_lc_si_300_histo, connectivity_miss_rec_si_300_histo, connectivity_miss_sim_si_300_histo,
                                connectivity_miss_lc_sc_histo, connectivity_miss_rec_sc_histo, connectivity_miss_sim_sc_histo};
 
   std::vector<TH1F*> connectivity_skip_histos = {connectivity_skip_lc_histo, connectivity_skip_rec_histo, connectivity_skip_sim_histo,
                                connectivity_skip_lc_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_sim_si_histo,
+                               connectivity_skip_lc_si_120_histo, connectivity_skip_rec_si_120_histo, connectivity_skip_sim_si_120_histo,
+                               connectivity_skip_lc_si_200_histo, connectivity_skip_rec_si_200_histo, connectivity_skip_sim_si_200_histo,
+                               connectivity_skip_lc_si_300_histo, connectivity_skip_rec_si_300_histo, connectivity_skip_sim_si_300_histo,
                                connectivity_skip_lc_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_sim_sc_histo};
 
 
   std::vector<TH1F*> det_bool_histos = {det_bool_lc_histo, det_bool_rec_histo, det_bool_sim_histo,
                                det_bool_lc_si_histo, det_bool_rec_si_histo, det_bool_sim_si_histo,
+                               det_bool_lc_si_120_histo, det_bool_rec_si_120_histo, det_bool_sim_si_120_histo,
+                               det_bool_lc_si_200_histo, det_bool_rec_si_200_histo, det_bool_sim_si_200_histo,
+                               det_bool_lc_si_300_histo, det_bool_rec_si_300_histo, det_bool_sim_si_300_histo,
                                det_bool_lc_sc_histo, det_bool_rec_sc_histo, det_bool_sim_sc_histo};
 
   std::vector<std::vector<int>> hit_layer_counters = {hit_layer_lc, hit_layer_rec, hit_layer_sim,
                                hit_layer_lc_si, hit_layer_rec_si, hit_layer_sim_si,
+                               hit_layer_lc_si_120, hit_layer_rec_si_120, hit_layer_sim_si_120,
+                               hit_layer_lc_si_200, hit_layer_rec_si_200, hit_layer_sim_si_200,
+                               hit_layer_lc_si_300, hit_layer_rec_si_300, hit_layer_sim_si_300,
                                hit_layer_lc_sc, hit_layer_rec_sc, hit_layer_sim_sc};
 
 
@@ -1704,31 +3044,62 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     hit_layer_rec_si_histo[i]->Fill(hit_layer_rec_si[i]);
     hit_layer_lc_si_histo[i]->Fill(hit_layer_lc_si[i]);
 
+    hit_layer_sim_si_120_histo[i]->Fill(hit_layer_sim_si_120[i]);
+    hit_layer_rec_si_120_histo[i]->Fill(hit_layer_rec_si_120[i]);
+    hit_layer_lc_si_120_histo[i]->Fill(hit_layer_lc_si_120[i]);
+
+    hit_layer_sim_si_200_histo[i]->Fill(hit_layer_sim_si_200[i]);
+    hit_layer_rec_si_200_histo[i]->Fill(hit_layer_rec_si_200[i]);
+    hit_layer_lc_si_200_histo[i]->Fill(hit_layer_lc_si_200[i]);
+
+    hit_layer_sim_si_300_histo[i]->Fill(hit_layer_sim_si_300[i]);
+    hit_layer_rec_si_300_histo[i]->Fill(hit_layer_rec_si_300[i]);
+    hit_layer_lc_si_300_histo[i]->Fill(hit_layer_lc_si_300[i]);
+
     hit_layer_sim_sc_histo[i]->Fill(hit_layer_sim_sc[i]);
     hit_layer_rec_sc_histo[i]->Fill(hit_layer_rec_sc[i]);
     hit_layer_lc_sc_histo[i]->Fill(hit_layer_lc_sc[i]);  
     
     det_sim_histo->Fill(i,hit_layer_sim[i]);
     det_sim_si_histo->Fill(i,hit_layer_sim_si[i]);
+    det_sim_si_120_histo->Fill(i,hit_layer_sim_si_120[i]);
+    det_sim_si_200_histo->Fill(i,hit_layer_sim_si_120[i]);
+    det_sim_si_300_histo->Fill(i,hit_layer_sim_si_300[i]);
     det_sim_sc_histo->Fill(i,hit_layer_sim_sc[i]);
 
     det_rec_histo->Fill(i,hit_layer_rec[i]);
     det_rec_si_histo->Fill(i,hit_layer_rec_si[i]);
+    det_rec_si_120_histo->Fill(i,hit_layer_rec_si_120[i]);
+    det_rec_si_200_histo->Fill(i,hit_layer_rec_si_200[i]);
+    det_rec_si_300_histo->Fill(i,hit_layer_rec_si_300[i]);
     det_rec_sc_histo->Fill(i,hit_layer_rec_sc[i]);
 
     det_lc_histo->Fill(i,hit_layer_lc[i]);
     det_lc_si_histo->Fill(i,hit_layer_lc_si[i]);
+    det_lc_si_120_histo->Fill(i,hit_layer_lc_si_120[i]);
+    det_lc_si_200_histo->Fill(i,hit_layer_lc_si_200[i]);
+    det_lc_si_300_histo->Fill(i,hit_layer_lc_si_300[i]);
     det_lc_sc_histo->Fill(i,hit_layer_lc_sc[i]);
+
+    // Missing Simhits
+
+
+    if(hit_layer_sim[i]==0){
+      std::cout << iEvent.id().event() << std::endl;
+      missing_simhits_histo->Fill(i,iEvent.id().event());
+    }
 
     // Loop through the different counters for the various connectivity scores and fill the histograms
 
     for(unsigned j=0; j<connectivity_counters.size();j++){
 
+
       if(hit_layer_counters[j][i]!=0){
+
         det_bool_histos[j]->Fill(i);
         connectivity_counters[j]++;
         connectivity_skip_counters[j]++;
-	skip_counters[j]=skip_;
+	      skip_counters[j]=skip_;
         if(connectivity_miss_counters[j]!=0){connectivity_miss_histos[j]->Fill(connectivity_miss_counters[j]);}
         connectivity_miss_counters[j]=0;
         if(i==46){
@@ -1991,12 +3362,14 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   tree->Fill();
 
 
+
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
   auto setup = iSetup.getData(setupToken_);
   // if need the ESHandle to check if the SetupData was there or not
   auto pSetup = iSetup.getHandle(setupToken_);
 #endif
+
 }
 
 // ------------ method called once each job just before starting event loop  ------------
