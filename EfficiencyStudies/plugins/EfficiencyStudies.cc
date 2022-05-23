@@ -20,6 +20,7 @@
 #include <memory>
 #include <numeric>
 #include <sstream>
+#include <any>
 #include <iomanip>
 #include <cmath>
 
@@ -127,6 +128,12 @@ private:
   edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeomToken_;
 
   TTree *tree = new TTree("tree","tree");
+
+  typedef std::map<std::string, std::vector<TH1F*>> detmap;
+  typedef std::map<std::string, detmap> objmap;
+
+  std::map<std::string, objmap> plot_map;
+
   // double trackPtMin_; 
   int skip_;
   std::string eta_;
@@ -670,15 +677,15 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   */
 
-  // Energy histograms
+  // One Off Histograms
 
+  // Energy histograms
 
   energy_rechits_histo = new TH1F("Energy Rechits", "Energy Rechits", 100,0,5);
 
   // Missing Hits 2D Histogram
 
   missing_simhits_histo = new TH2F("Missing Simhits","Missing Simhits",47,0,47,500,1,501);
-
 
   // Validation Plots (check Caloparticles, etc.)
 
@@ -694,14 +701,12 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   val_particle__lc_histo->SetLineColor(kGreen);
 //  val_particle__lc_histo->SetLineStyle(7);
 
-
   // PID
 
   pid_cp_histo = new TH1F("PID CP","PID CP",40,-20,20);
   pid_sim_histo = new TH1F("PID Sim","PID Sim",40,-20,20);
   pid_rec_histo = new TH1F("PID Rec","PID Rec",40,-20,20);
   pid_lc_histo = new TH1F("PID LC","PID LC",40,-20,20);
-
 
   // Hit Plots
 
@@ -717,6 +722,86 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
   hit_lc_histo->SetLineColor(kGreen);
 //  hit_lc_histo->SetLineStyle(7);
 
+
+  // Extensive Histograms
+
+
+  std::vector<std::string> objects = {"Simhits", "Rechits", "LCs"};
+  std::vector<std::string> detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sci"};
+
+  TString t_name;
+  for(const auto& obj : objects){
+    for(const auto& det : detectors){
+
+      // Hit Plots
+
+      t_name = "Detector Hit Plot: " + obj + " " + det;     
+      plot_map["Detector Hit Plots"][obj][det].push_back(new TH1F(t_name, t_name, 47, 0, 47));
+
+      t_name = "Detector Bool Hit Plot: " + obj + " " + det; 
+      plot_map["Detector Bool Hit Plots"][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
+
+      // Connectivity Plots
+    
+      t_name = "Connectivity Plot: " + obj + " " + det;
+      plot_map["Connectivity Plots"][obj][det].push_back(new TH1F(t_name, t_name, 48,0,48));
+
+      t_name = "W Connectivity Plot: " + obj + " " + det;
+      plot_map["W Connectivity Plots"][obj][det].push_back(new TH1F(t_name, t_name, 48,0,48));
+
+      t_name = "Skip Connectivity Plot: " + obj + " " + det;
+      plot_map["Skip Connectivity Plots"][obj][det].push_back(new TH1F(t_name, t_name, 48,0,48));
+
+      t_name = "Max Connectivity Plot: " + obj + " " + det;
+      plot_map["Max Connectivity Plots"][obj][det].push_back(new TH1F(t_name, t_name, 48,0,48));
+
+      t_name = "Miss Connectivity Plot: " + obj + " " + det;
+      plot_map["Miss Connectivity Plots"][obj][det].push_back(new TH1F(t_name, t_name, 48,0,48));
+
+      // Diff Plots
+
+      t_name = "Diff Eta Plots: "  + obj + " " + det;
+      plot_map["Diff Eta Plots"][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
+
+      t_name = "Diff Eta Plots: "  + obj + " " + det;
+      plot_map["Diff Phi Plots"][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
+
+      //t_name = "Diff Eta Phi Plots: "  + obj + " " + det;
+      //plot_map["Diff Eta Phi Plots"][obj][det].push_back(new TH2F(t_name,t_name,200,-0.2,0.2,200,-0.2,0.2));
+
+
+      t_name = "Diff x Plots: "  + obj + " " + det;
+      plot_map["Diff x Plots"][obj][det].push_back(new TH1F(t_name, t_name, 200,-10,10));
+
+      t_name = "Diff y Plots: "  + obj + " " + det;
+      plot_map["Diff y Plots"][obj][det].push_back(new TH1F(t_name, t_name, 200,-10,10));
+
+      //t_name = "Diff x y Plots: "  + obj + " " + det;
+      //plot_map["Diff x y Plots"][obj][det].push_back(new TH2F(t_name,t_name,200,-10,10,200,-10,10));
+
+      for(int i=0; i<47; i++){
+        std::stringstream nlayer;
+        nlayer << i;
+
+        t_name = "Hit Layer Plot: " + obj + " " + det + " Layer_" + nlayer.str();    
+        plot_map["Hit Layer Plots"][obj][det].push_back(new TH1F(t_name,t_name,20,0,20));
+
+        t_name = "Diff Eta Layer Plot: " + obj + " " + det + " Layer_" + nlayer.str(); 
+        plot_map["Diff Eta Layer Plots"][obj][det].push_back(new TH1F(t_name,t_name,200,-10,10));
+
+        t_name = "Diff Phi Layer Plot: " + obj + " " + det + " Layer_" + nlayer.str();
+        plot_map["Diff Phi Layer Plots"][obj][det].push_back(new TH1F(t_name, t_name,200,-10,10));
+
+        t_name = "Diff x Layer Plot: " + obj + " " + det + " Layer_" + nlayer.str();
+        plot_map["Diff x Layer Plots"][obj][det].push_back(new TH1F(t_name,t_name,200,-0,0.2));
+
+        t_name = "Diff y Layer Plot: " + obj + " " + det + " Layer_" + nlayer.str();       
+        plot_map["Diff y Layer Plots"][obj][det].push_back(new TH1F(t_name,t_name,200,-0.2,0.2));
+      }
+    }
+  }
+    
+/*
 
   for(int i=0;i<47;i++){
 
@@ -1234,7 +1319,7 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     std::string y_cp_lc = "Diff x CP - LC: ";
 
     std::stringstream nlayer;
-    TString tname;
+    TString t_name;
     nlayer << std::setw(2) <<std::setfill('0') << i;
     //ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
 
@@ -1245,104 +1330,107 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
     y_cp_sim += nlayer.str(); 
     y_cp_rec += nlayer.str(); 
     y_cp_lc += nlayer.str();
-    tname = nlayer.str();
+    t_name = nlayer.str();
 
     // Total
 
-    dist_x_cp_sim_layer_histo[i] = new TH1F("Diff x CP - Simhits: Layer " + tname,"Diff x CP - Simhits: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_layer_histo[i] = new TH1F("Diff y CP - Simhits: Layer " + tname,"Diff y CP - Simhits: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_layer_histo[i] = new TH1F("Diff eta CP - Simhits: Layer " + tname,"Diff eta CP - Simhits: Layer " + tname,200,-0,0.2);
-    dist_phi_cp_sim_layer_histo[i] = new TH1F("Diff phi CP - Simhits: Layer " + tname,"Diff phi CP - Simhits: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_layer_histo[i] = new TH1F("Diff x CP - Simhits: Layer " + t_name,"Diff x CP - Simhits: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_layer_histo[i] = new TH1F("Diff y CP - Simhits: Layer " + t_name,"Diff y CP - Simhits: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_layer_histo[i] = new TH1F("Diff eta CP - Simhits: Layer " + t_name,"Diff eta CP - Simhits: Layer " + t_name,200,-0,0.2);
+    dist_phi_cp_sim_layer_histo[i] = new TH1F("Diff phi CP - Simhits: Layer " + t_name,"Diff phi CP - Simhits: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_layer_histo[i] = new TH1F("Diff x CP - Rechits: Layer " + tname,"Diff x CP - Rechits: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_layer_histo[i] = new TH1F("Diff y CP - Rechits: Layer " + tname,"Diff y CP - Rechits: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_layer_histo[i] = new TH1F("Diff eta CP - Rechits: Layer " + tname,"Diff eta CP - Rechits: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_layer_histo[i] = new TH1F("Diff phi CP - Rechits: Layer " + tname,"Diff phi CP - Rechits: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_layer_histo[i] = new TH1F("Diff x CP - Rechits: Layer " + t_name,"Diff x CP - Rechits: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_layer_histo[i] = new TH1F("Diff y CP - Rechits: Layer " + t_name,"Diff y CP - Rechits: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_layer_histo[i] = new TH1F("Diff eta CP - Rechits: Layer " + t_name,"Diff eta CP - Rechits: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_layer_histo[i] = new TH1F("Diff phi CP - Rechits: Layer " + t_name,"Diff phi CP - Rechits: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_layer_histo[i] = new TH1F("Diff x CP - LCs: Layer " + tname,"Diff x CP - LCs: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_layer_histo[i] = new TH1F("Diff y CP - LCs: Layer " + tname,"Diff y CP - LCs: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_layer_histo[i] = new TH1F("Diff eta CP - LCs: Layer " + tname,"Diff eta CP - LCs: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_layer_histo[i] = new TH1F("Diff phi CP - LCs: Layer " + tname,"Diff phi CP - LCs: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_layer_histo[i] = new TH1F("Diff x CP - LCs: Layer " + t_name,"Diff x CP - LCs: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_layer_histo[i] = new TH1F("Diff y CP - LCs: Layer " + t_name,"Diff y CP - LCs: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_layer_histo[i] = new TH1F("Diff eta CP - LCs: Layer " + t_name,"Diff eta CP - LCs: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_layer_histo[i] = new TH1F("Diff phi CP - LCs: Layer " + t_name,"Diff phi CP - LCs: Layer " + t_name,200,-0.2,0.2);
 
     // Si
 
-    dist_x_cp_sim_si_layer_histo[i] = new TH1F("Diff x CP - Simhits Si: Layer " + tname,"Diff x CP - Simhits Si: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_si_layer_histo[i] = new TH1F("Diff y CP - Simhits Si: Layer " + tname,"Diff y CP - Simhits Si: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_si_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si: Layer " + tname,"Diff eta Simhits - LCs Si: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_sim_si_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si: Layer " + tname,"Diff phi Simhits - LCs Si: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_si_layer_histo[i] = new TH1F("Diff x CP - Simhits Si: Layer " + t_name,"Diff x CP - Simhits Si: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_si_layer_histo[i] = new TH1F("Diff y CP - Simhits Si: Layer " + t_name,"Diff y CP - Simhits Si: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_si_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si: Layer " + t_name,"Diff eta Simhits - LCs Si: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_sim_si_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si: Layer " + t_name,"Diff phi Simhits - LCs Si: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_si_layer_histo[i] = new TH1F("Diff x CP - Rechits Si: Layer " + tname,"Diff x CP - Rechits Si: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_si_layer_histo[i] = new TH1F("Diff y CP - Rechits Si: Layer " + tname,"Diff y CP - Rechits Si: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_si_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si: Layer " + tname,"Diff eta CP - Rechits Si: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_si_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si: Layer " + tname,"Diff phi CP - Rechits Si: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_si_layer_histo[i] = new TH1F("Diff x CP - Rechits Si: Layer " + t_name,"Diff x CP - Rechits Si: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_si_layer_histo[i] = new TH1F("Diff y CP - Rechits Si: Layer " + t_name,"Diff y CP - Rechits Si: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_si_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si: Layer " + t_name,"Diff eta CP - Rechits Si: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_si_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si: Layer " + t_name,"Diff phi CP - Rechits Si: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_si_layer_histo[i] = new TH1F("Diff x CP - LCs Si: Layer " + tname,"Diff x CP - LCs Si: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_si_layer_histo[i] = new TH1F("Diff y CP - LCs Si: Layer " + tname,"Diff y CP - LCs Si: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_si_layer_histo[i] = new TH1F("Diff eta CP - LCs Si: Layer " + tname,"Diff eta CP - LCs Si: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_si_layer_histo[i] = new TH1F("Diff phi CP - LCs Si: Layer " + tname,"Diff phi CP - LCs Si: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_si_layer_histo[i] = new TH1F("Diff x CP - LCs Si: Layer " + t_name,"Diff x CP - LCs Si: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_si_layer_histo[i] = new TH1F("Diff y CP - LCs Si: Layer " + t_name,"Diff y CP - LCs Si: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_si_layer_histo[i] = new TH1F("Diff eta CP - LCs Si: Layer " + t_name,"Diff eta CP - LCs Si: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_si_layer_histo[i] = new TH1F("Diff phi CP - LCs Si: Layer " + t_name,"Diff phi CP - LCs Si: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_sim_si_120_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 120: Layer " + tname,"Diff x CP - Simhits Si 120: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_si_120_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 120: Layer " + tname,"Diff y CP - Simhits Si 120: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_si_120_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 120: Layer " + tname,"Diff eta Simhits - LCs Si 120: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_sim_si_120_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 120: Layer " + tname,"Diff phi Simhits - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_si_120_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 120: Layer " + t_name,"Diff x CP - Simhits Si 120: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_si_120_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 120: Layer " + t_name,"Diff y CP - Simhits Si 120: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_si_120_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 120: Layer " + t_name,"Diff eta Simhits - LCs Si 120: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_sim_si_120_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 120: Layer " + t_name,"Diff phi Simhits - LCs Si 120: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_si_120_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 120: Layer " + tname,"Diff x CP - Rechits Si 120: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_si_120_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 120: Layer " + tname,"Diff y CP - Rechits Si 120: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_si_120_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 120: Layer " + tname,"Diff eta CP - Rechits Si 120: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_si_120_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 120: Layer " + tname,"Diff phi CP - Rechits Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_si_120_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 120: Layer " + t_name,"Diff x CP - Rechits Si 120: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_si_120_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 120: Layer " + t_name,"Diff y CP - Rechits Si 120: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_si_120_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 120: Layer " + t_name,"Diff eta CP - Rechits Si 120: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_si_120_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 120: Layer " + t_name,"Diff phi CP - Rechits Si 120: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_si_120_layer_histo[i] = new TH1F("Diff x CP - LCs Si 120: Layer " + tname,"Diff x CP - LCs Si 120: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_si_120_layer_histo[i] = new TH1F("Diff y CP - LCs Si 120: Layer " + tname,"Diff y CP - LCs Si 120: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_si_120_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 120: Layer " + tname,"Diff eta CP - LCs Si 120: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_si_120_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 120: Layer " + tname,"Diff phi CP - LCs Si 120: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_si_120_layer_histo[i] = new TH1F("Diff x CP - LCs Si 120: Layer " + t_name,"Diff x CP - LCs Si 120: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_si_120_layer_histo[i] = new TH1F("Diff y CP - LCs Si 120: Layer " + t_name,"Diff y CP - LCs Si 120: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_si_120_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 120: Layer " + t_name,"Diff eta CP - LCs Si 120: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_si_120_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 120: Layer " + t_name,"Diff phi CP - LCs Si 120: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_sim_si_200_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 200: Layer " + tname,"Diff x CP - Simhits Si 200: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_si_200_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 200: Layer " + tname,"Diff y CP - Simhits Si 200: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_si_200_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 200: Layer " + tname,"Diff eta Simhits - LCs Si 200: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_sim_si_200_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 200: Layer " + tname,"Diff phi Simhits - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_si_200_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 200: Layer " + t_name,"Diff x CP - Simhits Si 200: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_si_200_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 200: Layer " + t_name,"Diff y CP - Simhits Si 200: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_si_200_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 200: Layer " + t_name,"Diff eta Simhits - LCs Si 200: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_sim_si_200_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 200: Layer " + t_name,"Diff phi Simhits - LCs Si 200: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_si_200_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 200: Layer " + tname,"Diff x CP - Rechits Si 200: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_si_200_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 200: Layer " + tname,"Diff y CP - Rechits Si 200: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_si_200_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 200: Layer " + tname,"Diff eta CP - Rechits Si 200: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_si_200_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 200: Layer " + tname,"Diff phi CP - Rechits Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_si_200_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 200: Layer " + t_name,"Diff x CP - Rechits Si 200: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_si_200_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 200: Layer " + t_name,"Diff y CP - Rechits Si 200: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_si_200_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 200: Layer " + t_name,"Diff eta CP - Rechits Si 200: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_si_200_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 200: Layer " + t_name,"Diff phi CP - Rechits Si 200: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_si_200_layer_histo[i] = new TH1F("Diff x CP - LCs Si 200: Layer " + tname,"Diff x CP - LCs Si 200: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_si_200_layer_histo[i] = new TH1F("Diff y CP - LCs Si 200: Layer " + tname,"Diff y CP - LCs Si 200: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_si_200_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 200: Layer " + tname,"Diff eta CP - LCs Si 200: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_si_200_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 200: Layer " + tname,"Diff phi CP - LCs Si 200: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_si_200_layer_histo[i] = new TH1F("Diff x CP - LCs Si 200: Layer " + t_name,"Diff x CP - LCs Si 200: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_si_200_layer_histo[i] = new TH1F("Diff y CP - LCs Si 200: Layer " + t_name,"Diff y CP - LCs Si 200: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_si_200_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 200: Layer " + t_name,"Diff eta CP - LCs Si 200: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_si_200_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 200: Layer " + t_name,"Diff phi CP - LCs Si 200: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_sim_si_300_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 300: Layer " + tname,"Diff x CP - Simhits Si 300: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_si_300_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 300: Layer " + tname,"Diff y CP - Simhits Si 300: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_si_300_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 300: Layer " + tname,"Diff eta Simhits - LCs Si 300: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_sim_si_300_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 300: Layer " + tname,"Diff phi Simhits - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_si_300_layer_histo[i] = new TH1F("Diff x CP - Simhits Si 300: Layer " + t_name,"Diff x CP - Simhits Si 300: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_si_300_layer_histo[i] = new TH1F("Diff y CP - Simhits Si 300: Layer " + t_name,"Diff y CP - Simhits Si 300: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_si_300_layer_histo[i] = new TH1F("Diff eta CP - Simhits Si 300: Layer " + t_name,"Diff eta Simhits - LCs Si 300: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_sim_si_300_layer_histo[i] = new TH1F("Diff phi CP - Simhits Si 300: Layer " + t_name,"Diff phi Simhits - LCs Si 300: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_si_300_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 300: Layer " + tname,"Diff x CP - Rechits Si 300: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_si_300_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 300: Layer " + tname,"Diff y CP - Rechits Si 300: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_si_300_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 300: Layer " + tname,"Diff eta CP - Rechits Si 300: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_si_300_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 300: Layer " + tname,"Diff phi CP - Rechits Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_si_300_layer_histo[i] = new TH1F("Diff x CP - Rechits Si 300: Layer " + t_name,"Diff x CP - Rechits Si 300: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_si_300_layer_histo[i] = new TH1F("Diff y CP - Rechits Si 300: Layer " + t_name,"Diff y CP - Rechits Si 300: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_si_300_layer_histo[i] = new TH1F("Diff eta CP - Rechits Si 300: Layer " + t_name,"Diff eta CP - Rechits Si 300: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_si_300_layer_histo[i] = new TH1F("Diff phi CP - Rechits Si 300: Layer " + t_name,"Diff phi CP - Rechits Si 300: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_si_300_layer_histo[i] = new TH1F("Diff x CP - LCs Si 300: Layer " + tname,"Diff x CP - LCs Si 300: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_si_300_layer_histo[i] = new TH1F("Diff y CP - LCs Si 300: Layer " + tname,"Diff y CP - LCs Si 300: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_si_300_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 300: Layer " + tname,"Diff eta CP - LCs Si 300: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_si_300_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 300: Layer " + tname,"Diff phi CP - LCs Si 300: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_si_300_layer_histo[i] = new TH1F("Diff x CP - LCs Si 300: Layer " + t_name,"Diff x CP - LCs Si 300: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_si_300_layer_histo[i] = new TH1F("Diff y CP - LCs Si 300: Layer " + t_name,"Diff y CP - LCs Si 300: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_si_300_layer_histo[i] = new TH1F("Diff eta CP - LCs Si 300: Layer " + t_name,"Diff eta CP - LCs Si 300: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_si_300_layer_histo[i] = new TH1F("Diff phi CP - LCs Si 300: Layer " + t_name,"Diff phi CP - LCs Si 300: Layer " + t_name,200,-0.2,0.2);
 
     // Scintillator
 
-    dist_x_cp_sim_sc_layer_histo[i] = new TH1F("Diff x CP - Simhits Scintillator: Layer " + tname,"Diff x CP - Simhits Scintillator: Layer " + tname,200,-10,10);
-    dist_y_cp_sim_sc_layer_histo[i] = new TH1F("Diff y CP - Simhits Scintillator: Layer " + tname,"Diff y CP - Simhits Scintillator: Layer " + tname,200,-10,10);
-    dist_eta_cp_sim_sc_layer_histo[i] = new TH1F("Diff eta CP - Simhits Scintillator: Layer " + tname,"Diff eta Simhits - Simhits Scintillator: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_sim_sc_layer_histo[i] = new TH1F("Diff phi CP - Simhits Scintillator: Layer " + tname,"Diff phi Simhits - Simhits Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_sim_sc_layer_histo[i] = new TH1F("Diff x CP - Simhits Scintillator: Layer " + t_name,"Diff x CP - Simhits Scintillator: Layer " + t_name,200,-10,10);
+    dist_y_cp_sim_sc_layer_histo[i] = new TH1F("Diff y CP - Simhits Scintillator: Layer " + t_name,"Diff y CP - Simhits Scintillator: Layer " + t_name,200,-10,10);
+    dist_eta_cp_sim_sc_layer_histo[i] = new TH1F("Diff eta CP - Simhits Scintillator: Layer " + t_name,"Diff eta Simhits - Simhits Scintillator: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_sim_sc_layer_histo[i] = new TH1F("Diff phi CP - Simhits Scintillator: Layer " + t_name,"Diff phi Simhits - Simhits Scintillator: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_rec_sc_layer_histo[i] = new TH1F("Diff x CP - Rechits Scintillator: Layer " + tname,"Diff x CP - Rechits Scintillator: Layer " + tname,200,-10,10);
-    dist_y_cp_rec_sc_layer_histo[i] = new TH1F("Diff y CP - Rechits Scintillator: Layer " + tname,"Diff y CP - Rechits Scintillator: Layer " + tname,200,-10,10);
-    dist_eta_cp_rec_sc_layer_histo[i] = new TH1F("Diff eta CP - Rechits Scintillator: Layer " + tname,"Diff eta CP - Rechits Scintillator: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_rec_sc_layer_histo[i] = new TH1F("Diff phi CP - Rechits Scintillator: Layer " + tname,"Diff phi CP - Rechits Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_rec_sc_layer_histo[i] = new TH1F("Diff x CP - Rechits Scintillator: Layer " + t_name,"Diff x CP - Rechits Scintillator: Layer " + t_name,200,-10,10);
+    dist_y_cp_rec_sc_layer_histo[i] = new TH1F("Diff y CP - Rechits Scintillator: Layer " + t_name,"Diff y CP - Rechits Scintillator: Layer " + t_name,200,-10,10);
+    dist_eta_cp_rec_sc_layer_histo[i] = new TH1F("Diff eta CP - Rechits Scintillator: Layer " + t_name,"Diff eta CP - Rechits Scintillator: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_rec_sc_layer_histo[i] = new TH1F("Diff phi CP - Rechits Scintillator: Layer " + t_name,"Diff phi CP - Rechits Scintillator: Layer " + t_name,200,-0.2,0.2);
 
-    dist_x_cp_lc_sc_layer_histo[i] = new TH1F("Diff x CP - LCs Scintillator: Layer " + tname,"Diff x CP - LCs Scintillator: Layer " + tname,200,-10,10);
-    dist_y_cp_lc_sc_layer_histo[i] = new TH1F("Diff y CP - LCs Scintillator: Layer " + tname,"Diff y CP - LCs Scintillator: Layer " + tname,200,-10,10);
-    dist_eta_cp_lc_sc_layer_histo[i] = new TH1F("Diff eta CP - LCs Scintillator: Layer " + tname,"Diff eta CP - LCs Scintillator: Layer " + tname,200,-0.2,0.2);
-    dist_phi_cp_lc_sc_layer_histo[i] = new TH1F("Diff phi CP - LCs Scintillator: Layer " + tname,"Diff phi CP - LCs Scintillator: Layer " + tname,200,-0.2,0.2);
+    dist_x_cp_lc_sc_layer_histo[i] = new TH1F("Diff x CP - LCs Scintillator: Layer " + t_name,"Diff x CP - LCs Scintillator: Layer " + t_name,200,-10,10);
+    dist_y_cp_lc_sc_layer_histo[i] = new TH1F("Diff y CP - LCs Scintillator: Layer " + t_name,"Diff y CP - LCs Scintillator: Layer " + t_name,200,-10,10);
+    dist_eta_cp_lc_sc_layer_histo[i] = new TH1F("Diff eta CP - LCs Scintillator: Layer " + t_name,"Diff eta CP - LCs Scintillator: Layer " + t_name,200,-0.2,0.2);
+    dist_phi_cp_lc_sc_layer_histo[i] = new TH1F("Diff phi CP - LCs Scintillator: Layer " + t_name,"Diff phi CP - LCs Scintillator: Layer " + t_name,200,-0.2,0.2);
   }
+
+
+*/
 
 }
 
@@ -1362,6 +1450,8 @@ EfficiencyStudies::~EfficiencyStudies() {
   std::vector<float> pos = {0.70,0.75,0.9,0.9};
   std::vector<TString> axes;
 
+
+  /*
 
   // Energy Histograms
 
@@ -1397,7 +1487,7 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   std::vector<TString> legend =  {"SimHits", "RecHits", "LCs"};
   std::vector<TH1F*> hists = {};
-  TString tname;
+  TString t_name;
   TString ttitle;
 
   for(int i=1; i<48; i++){
@@ -1405,68 +1495,68 @@ EfficiencyStudies::~EfficiencyStudies() {
     // Total hits
     std::stringstream ss;
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
-    tname = ss.str();
+    t_name = ss.str();
 
     std::stringstream title;
     title << "Total Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_histo[i-1], hit_layer_rec_histo[i-1], hit_layer_lc_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
 
     // Si hits
     ss.str("");
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si.png";
-    tname = ss.str();
+    t_name = ss.str();
 
     title.str("");
     title << "Si Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_si_histo[i-1], hit_layer_rec_si_histo[i-1], hit_layer_lc_si_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
 
     // 120 hits
     ss.str("");
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_120.png";
-    tname = ss.str();
+    t_name = ss.str();
 
     title.str("");
     title << "Si 120 Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_si_120_histo[i-1], hit_layer_rec_si_120_histo[i-1], hit_layer_lc_si_120_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
 
     // 200 hits
     ss.str("");
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_200.png";
-    tname = ss.str();
+    t_name = ss.str();
 
     title.str("");
     title << "Si 200 Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_si_200_histo[i-1], hit_layer_rec_si_200_histo[i-1], hit_layer_lc_si_200_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder+"/Thickness", ttitle);
 
     // 300 hits
     ss.str("");
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_si_300.png";
-    tname = ss.str();
+    t_name = ss.str();
 
     title.str("");
     title << "Si 300 Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_si_300_histo[i-1], hit_layer_rec_si_300_histo[i-1], hit_layer_lc_si_300_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
 
     // Sc hits
     ss.str("");
     ss << "Layer" <<std::setw(2) << std::setfill('0') << i <<"_sc.png";
-    tname = ss.str();
+    t_name = ss.str();
 
     title.str("");
     title << "Scintillator Hits in Layer " << std::setfill('0') << i;
     ttitle = title.str();
     hists = {hit_layer_sim_sc_histo[i-1], hit_layer_rec_sc_histo[i-1], hit_layer_lc_sc_histo[i-1]}; //i-1 necessary so to map position '0' to 'Layer1'
-    createTHSPlot(c1, colors, hists, tname, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
+    createTHSPlot(c1, colors, hists, t_name, axes, {"Simhits", "Rechits", "LCs"}, pos, folder, ttitle);
   } 
 
   createTH1Plot(c1, hit_sim_histo, "Simhits.png", axes, folder);
@@ -1596,74 +1686,74 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   std::stringstream ss;
   ss << "Connectivity_Skip_" <<std::setw(1) << std::setfill('1') << skip_ << "_";
-  tname = ss.str();
+  t_name = ss.str();
 
-  createTH1Plot(c1, connectivity_skip_lc_histo,tname+"LC.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_histo,tname+"Rechit.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_histo,tname+"Simhit.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_lc_histo,t_name+"LC.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_histo,t_name+"Rechit.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_histo,t_name+"Simhit.png", axes, folder);
 
   connectivity_skip_lc_histo ->SetStats(0);
   connectivity_skip_rec_histo ->SetStats(0);
   connectivity_skip_sim_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_histo, connectivity_skip_rec_histo, connectivity_skip_lc_histo};
-  createTHSPlot(c1, colors, hists, tname + "Stack.png", axes, legend, {0.60,0.73,0.8,0.88}, folder, "Skip Total Connectivity");
+  createTHSPlot(c1, colors, hists, t_name + "Stack.png", axes, legend, {0.60,0.73,0.8,0.88}, folder, "Skip Total Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_si_histo,tname+"LC_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_si_histo,tname+"RecCluster_Si.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_si_histo,tname+"SimCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_lc_si_histo,t_name+"LC_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_si_histo,t_name+"RecCluster_Si.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_si_histo,t_name+"SimCluster_Si.png", axes, folder);
 
   connectivity_skip_lc_si_histo ->SetStats(0);
   connectivity_skip_rec_si_histo ->SetStats(0);
   connectivity_skip_sim_si_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
-  createTHSPlot(c1, colors, hists, tname+"Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
+  createTHSPlot(c1, colors, hists, t_name+"Stack_Si.png", axes, legend, pos, folder, "Skip Si Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_si_120_histo,tname+"LC_Si_120.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_rec_si_120_histo,tname+"RecCluster_Si_120.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_sim_si_120_histo,tname+"SimCluster_Si_120.png", axes, folder+"/Thickness"+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_lc_si_120_histo,t_name+"LC_Si_120.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_rec_si_120_histo,t_name+"RecCluster_Si_120.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_si_120_histo,t_name+"SimCluster_Si_120.png", axes, folder+"/Thickness"+"/Thickness");
 
   connectivity_skip_lc_si_120_histo ->SetStats(0);
   connectivity_skip_rec_si_120_histo ->SetStats(0);
   connectivity_skip_sim_si_120_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_si_120_histo, connectivity_skip_rec_si_120_histo, connectivity_skip_lc_si_120_histo};
-  createTHSPlot(c1, colors, hists, tname+"Stack_Si_120.png", axes, legend, pos, folder+"/Thickness", "Skip Si 120 Connectivity");
+  createTHSPlot(c1, colors, hists, t_name+"Stack_Si_120.png", axes, legend, pos, folder+"/Thickness", "Skip Si 120 Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_si_200_histo,tname+"LC_Si_200.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_rec_si_200_histo,tname+"RecCluster_Si_200.png", axes, folder);
-  createTH1Plot(c1, connectivity_skip_sim_si_200_histo,tname+"SimCluster_Si_200.png", axes, folder+"/Thickness"+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_lc_si_200_histo,t_name+"LC_Si_200.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_si_200_histo,t_name+"RecCluster_Si_200.png", axes, folder);
+  createTH1Plot(c1, connectivity_skip_sim_si_200_histo,t_name+"SimCluster_Si_200.png", axes, folder+"/Thickness"+"/Thickness");
 
   connectivity_skip_lc_si_200_histo ->SetStats(0);
   connectivity_skip_rec_si_200_histo ->SetStats(0);
   connectivity_skip_sim_si_200_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_si_histo, connectivity_skip_rec_si_histo, connectivity_skip_lc_si_histo};
-  createTHSPlot(c1, colors, hists, tname+"Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Skip Si 200 Connectivity");
+  createTHSPlot(c1, colors, hists, t_name+"Stack_Si_200.png", axes, legend, pos, folder+"/Thickness", "Skip Si 200 Connectivity");
 
-  createTH1Plot(c1, connectivity_skip_lc_si_300_histo,tname+"LC_Si_300.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_rec_si_300_histo,tname+"RecCluster_Si_300.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_sim_si_300_histo,tname+"SimCluster_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_lc_si_300_histo,t_name+"LC_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_si_300_histo,t_name+"RecCluster_Si_300.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_si_300_histo,t_name+"SimCluster_Si_300.png", axes, folder+"/Thickness");
 
   connectivity_skip_lc_si_300_histo ->SetStats(0);
   connectivity_skip_rec_si_300_histo ->SetStats(0);
   connectivity_skip_sim_si_300_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_si_300_histo, connectivity_skip_rec_si_300_histo, connectivity_skip_lc_si_300_histo};
-  createTHSPlot(c1, colors, hists, tname+"Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Skip Si 300 Connectivity");
+  createTHSPlot(c1, colors, hists, t_name+"Stack_Si_300.png", axes, legend, pos, folder+"/Thickness", "Skip Si 300 Connectivity");
 
 
-  createTH1Plot(c1, connectivity_skip_lc_sc_histo,tname+"LC_Sc.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_rec_sc_histo,tname+"RecCluster_Sc.png", axes, folder+"/Thickness");
-  createTH1Plot(c1, connectivity_skip_sim_sc_histo,tname+"SimCluster_Sc.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_lc_sc_histo,t_name+"LC_Sc.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_rec_sc_histo,t_name+"RecCluster_Sc.png", axes, folder+"/Thickness");
+  createTH1Plot(c1, connectivity_skip_sim_sc_histo,t_name+"SimCluster_Sc.png", axes, folder+"/Thickness");
 
   connectivity_skip_lc_sc_histo ->SetStats(0);
   connectivity_skip_rec_sc_histo ->SetStats(0);
   connectivity_skip_sim_sc_histo ->SetStats(0);
 
   hists = {connectivity_skip_sim_sc_histo, connectivity_skip_rec_sc_histo, connectivity_skip_lc_sc_histo};
-  createTHSPlot(c1, colors, hists, tname+"Stack_Scintillator.png", axes, legend, pos, folder, "Skip Scintillator Connectivity");
+  createTHSPlot(c1, colors, hists, t_name+"Stack_Scintillator.png", axes, legend, pos, folder, "Skip Scintillator Connectivity");
 
   c1->SetLogy(0);
 
@@ -2060,103 +2150,103 @@ EfficiencyStudies::~EfficiencyStudies() {
 
     std::stringstream ss;
     ss << "_Layer" <<std::setw(2) << std::setfill('0') << i <<".png";
-    tname = ss.str();
+    t_name = ss.str();
 
   axes = {"#Delta x", "#Delta y"};
-    createTH1Plot(c1,dist_x_cp_sim_layer_histo[i], "Diff_x_CP_Sim"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_layer_histo[i], "Diff_y_CP_Sim"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_layer_histo[i], "Diff_eta_CP_Sim"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_layer_histo[i], "Diff_phi_CP_Sim"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_layer_histo[i], "Diff_x_CP_Sim"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_layer_histo[i], "Diff_y_CP_Sim"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_layer_histo[i], "Diff_eta_CP_Sim"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_layer_histo[i], "Diff_phi_CP_Sim"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_layer_histo[i], "Diff_x_CP_rec"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_layer_histo[i], "Diff_y_CP_rec"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_layer_histo[i], "Diff_eta_CP_rec"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_layer_histo[i], "Diff_phi_CP_rec"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_layer_histo[i], "Diff_x_CP_rec"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_layer_histo[i], "Diff_y_CP_rec"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_layer_histo[i], "Diff_eta_CP_rec"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_layer_histo[i], "Diff_phi_CP_rec"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_layer_histo[i], "Diff_x_CP_lc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_layer_histo[i], "Diff_y_CP_lc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_layer_histo[i], "Diff_eta_CP_lc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_layer_histo[i], "Diff_phi_CP_lc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_layer_histo[i], "Diff_x_CP_lc"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_layer_histo[i], "Diff_y_CP_lc"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_layer_histo[i], "Diff_eta_CP_lc"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_layer_histo[i], "Diff_phi_CP_lc"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
     // Si
 
-    createTH1Plot(c1,dist_x_cp_sim_si_layer_histo[i], "Diff_x_CP_Sim_Si"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_si_layer_histo[i], "Diff_y_CP_Sim_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_si_layer_histo[i], "Diff_eta_CP_Sim_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_si_layer_histo[i], "Diff_phi_CP_Sim_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_si_layer_histo[i], "Diff_x_CP_Sim_Si"+t_name,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_layer_histo[i], "Diff_y_CP_Sim_Si"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_layer_histo[i], "Diff_eta_CP_Sim_Si"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_layer_histo[i], "Diff_phi_CP_Sim_Si"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_si_layer_histo[i], "Diff_x_CP_rec_Si"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_si_layer_histo[i], "Diff_y_CP_rec_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_si_layer_histo[i], "Diff_eta_CP_rec_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_si_layer_histo[i], "Diff_phi_CP_rec_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_si_layer_histo[i], "Diff_x_CP_rec_Si"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_layer_histo[i], "Diff_y_CP_rec_Si"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_layer_histo[i], "Diff_eta_CP_rec_Si"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_layer_histo[i], "Diff_phi_CP_rec_Si"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_si_layer_histo[i], "Diff_x_CP_lc_Si"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_si_layer_histo[i], "Diff_y_CP_lc_Si"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_si_layer_histo[i], "Diff_eta_CP_lc_Si"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_si_layer_histo[i], "Diff_phi_CP_lc_Si"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_si_layer_histo[i], "Diff_x_CP_lc_Si"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_layer_histo[i], "Diff_y_CP_lc_Si"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_layer_histo[i], "Diff_eta_CP_lc_Si"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_layer_histo[i], "Diff_phi_CP_lc_Si"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_sim_si_120_layer_histo[i], "Diff_x_CP_Sim_Si_120"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_si_120_layer_histo[i], "Diff_y_CP_Sim_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_si_120_layer_histo[i], "Diff_eta_CP_Sim_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_si_120_layer_histo[i], "Diff_phi_CP_Sim_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_si_120_layer_histo[i], "Diff_x_CP_Sim_Si_120"+t_name,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_120_layer_histo[i], "Diff_y_CP_Sim_Si_120"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_120_layer_histo[i], "Diff_eta_CP_Sim_Si_120"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_120_layer_histo[i], "Diff_phi_CP_Sim_Si_120"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_si_120_layer_histo[i], "Diff_x_CP_rec_Si_120"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_si_120_layer_histo[i], "Diff_y_CP_rec_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_si_120_layer_histo[i], "Diff_eta_CP_rec_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_si_120_layer_histo[i], "Diff_phi_CP_rec_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_si_120_layer_histo[i], "Diff_x_CP_rec_Si_120"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_120_layer_histo[i], "Diff_y_CP_rec_Si_120"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_120_layer_histo[i], "Diff_eta_CP_rec_Si_120"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_120_layer_histo[i], "Diff_phi_CP_rec_Si_120"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_si_120_layer_histo[i], "Diff_x_CP_lc_Si_120"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_si_120_layer_histo[i], "Diff_y_CP_lc_Si_120"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_si_120_layer_histo[i], "Diff_eta_CP_lc_Si_120"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_si_120_layer_histo[i], "Diff_phi_CP_lc_Si_120"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_si_120_layer_histo[i], "Diff_x_CP_lc_Si_120"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_120_layer_histo[i], "Diff_y_CP_lc_Si_120"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_120_layer_histo[i], "Diff_eta_CP_lc_Si_120"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_120_layer_histo[i], "Diff_phi_CP_lc_Si_120"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_sim_si_200_layer_histo[i], "Diff_x_CP_Sim_Si_200"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_si_200_layer_histo[i], "Diff_y_CP_Sim_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_si_200_layer_histo[i], "Diff_eta_CP_Sim_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_si_200_layer_histo[i], "Diff_phi_CP_Sim_S_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_si_200_layer_histo[i], "Diff_x_CP_Sim_Si_200"+t_name,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_200_layer_histo[i], "Diff_y_CP_Sim_Si_200"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_200_layer_histo[i], "Diff_eta_CP_Sim_Si_200"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_200_layer_histo[i], "Diff_phi_CP_Sim_S_200"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_si_200_layer_histo[i], "Diff_x_CP_rec_Si_200"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_si_200_layer_histo[i], "Diff_y_CP_rec_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_si_200_layer_histo[i], "Diff_eta_CP_rec_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_si_200_layer_histo[i], "Diff_phi_CP_rec_Si_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_si_200_layer_histo[i], "Diff_x_CP_rec_Si_200"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_200_layer_histo[i], "Diff_y_CP_rec_Si_200"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_200_layer_histo[i], "Diff_eta_CP_rec_Si_200"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_200_layer_histo[i], "Diff_phi_CP_rec_Si_200"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_si_200_layer_histo[i], "Diff_x_CP_lc_Si_200"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_si_200_layer_histo[i], "Diff_y_CP_lc_Si_200"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_si_200_layer_histo[i], "Diff_eta_CP_lc_Si_200"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_si_200_layer_histo[i], "Diff_phi_CP_lc_Si_200"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_si_200_layer_histo[i], "Diff_x_CP_lc_Si_200"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_200_layer_histo[i], "Diff_y_CP_lc_Si_200"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_200_layer_histo[i], "Diff_eta_CP_lc_Si_200"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_200_layer_histo[i], "Diff_phi_CP_lc_Si_200"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_sim_si_300_layer_histo[i], "Diff_x_CP_Sim_Si_300"+tname,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_si_300_layer_histo[i], "Diff_y_CP_Sim_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_si_300_layer_histo[i], "Diff_eta_CP_Sim_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_si_300_layer_histo[i], "Diff_phi_CP_Sim_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_si_300_layer_histo[i], "Diff_x_CP_Sim_Si_300"+t_name,{"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_si_300_layer_histo[i], "Diff_y_CP_Sim_Si_300"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_si_300_layer_histo[i], "Diff_eta_CP_Sim_Si_300"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_si_300_layer_histo[i], "Diff_phi_CP_Sim_Si_300"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_si_300_layer_histo[i], "Diff_x_CP_rec_Si_300"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_si_300_layer_histo[i], "Diff_y_CP_rec_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_si_300_layer_histo[i], "Diff_eta_CP_rec_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_si_300_layer_histo[i], "Diff_phi_CP_rec_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_si_300_layer_histo[i], "Diff_x_CP_rec_Si_300"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_si_300_layer_histo[i], "Diff_y_CP_rec_Si_300"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_si_300_layer_histo[i], "Diff_eta_CP_rec_Si_300"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_si_300_layer_histo[i], "Diff_phi_CP_rec_Si_300"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_si_300_layer_histo[i], "Diff_x_CP_lc_Si_300"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_si_300_layer_histo[i], "Diff_y_CP_lc_Si_300"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_si_300_layer_histo[i], "Diff_eta_CP_lc_Si_300"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_si_300_layer_histo[i], "Diff_phi_CP_lc_Si_300"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_si_300_layer_histo[i], "Diff_x_CP_lc_Si_300"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_si_300_layer_histo[i], "Diff_y_CP_lc_Si_300"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_si_300_layer_histo[i], "Diff_eta_CP_lc_Si_300"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_si_300_layer_histo[i], "Diff_phi_CP_lc_Si_300"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
 
     // Scintillator
 
-    createTH1Plot(c1,dist_x_cp_sim_sc_layer_histo[i], "Diff_x_CP_Sim_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_sim_sc_layer_histo[i], "Diff_y_CP_Sim_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_sim_sc_layer_histo[i], "Diff_eta_CP_Sim_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_sim_sc_layer_histo[i], "Diff_phi_CP_Sim_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_sim_sc_layer_histo[i], "Diff_x_CP_Sim_Sc"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_sim_sc_layer_histo[i], "Diff_y_CP_Sim_Sc"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_sim_sc_layer_histo[i], "Diff_eta_CP_Sim_Sc"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_sim_sc_layer_histo[i], "Diff_phi_CP_Sim_Sc"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_rec_sc_layer_histo[i], "Diff_x_CP_rec_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_rec_sc_layer_histo[i], "Diff_y_CP_rec_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_rec_sc_layer_histo[i], "Diff_eta_CP_rec_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_rec_sc_layer_histo[i], "Diff_phi_CP_rec_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_rec_sc_layer_histo[i], "Diff_x_CP_rec_Sc"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_rec_sc_layer_histo[i], "Diff_y_CP_rec_Sc"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_rec_sc_layer_histo[i], "Diff_eta_CP_rec_Sc"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_rec_sc_layer_histo[i], "Diff_phi_CP_rec_Sc"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
 
-    createTH1Plot(c1,dist_x_cp_lc_sc_layer_histo[i], "Diff_x_CP_lc_Sc"+tname, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_y_cp_lc_sc_layer_histo[i], "Diff_y_CP_lc_Sc"+tname, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_eta_cp_lc_sc_layer_histo[i], "Diff_eta_CP_lc_Sc"+tname, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
-    createTH1Plot(c1,dist_phi_cp_lc_sc_layer_histo[i], "Diff_phi_CP_lc_Sc"+tname, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_x_cp_lc_sc_layer_histo[i], "Diff_x_CP_lc_Sc"+t_name, {"#Delta x","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_y_cp_lc_sc_layer_histo[i], "Diff_y_CP_lc_Sc"+t_name, {"#Delta y","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_eta_cp_lc_sc_layer_histo[i], "Diff_eta_CP_lc_Sc"+t_name, {"#Delta #eta","Occurence"}, folder+"/Layerwise_Distance");
+    createTH1Plot(c1,dist_phi_cp_lc_sc_layer_histo[i], "Diff_phi_CP_lc_Sc"+t_name, {"#Delta #phi","Occurence"}, folder+"/Layerwise_Distance");
   }
 */
 }
@@ -2300,6 +2390,21 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int nRechits = 0;
   int nLChits = 0;
 
+  typedef std::map<std::string, std::vector<int>> detmap;
+  typedef std::map<std::string, detmap> objmap;
+
+  std::map<std::string, objmap> counter_map;
+
+  std::vector<std::string> objects = {"Simhits", "Rechits", "LCs"};
+  std::vector<std::string> detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sci"};
+
+  TString t_name;
+  for(const auto& obj : objects){
+    for(const auto& det : detectors){
+      std::vector<int> counter(47,0);
+      counter_map["Hit Counters"][obj][det]=counter;
+  
+
   std::vector<int> hit_layer_sim(47,0);
   std::vector<int> hit_layer_sim_si(47,0);
   std::vector<int> hit_layer_sim_si_120(47,0);
@@ -2319,6 +2424,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::vector<int> hit_layer_lc_si_300(47,0);
   std::vector<int> hit_layer_lc_sc(47,0);
 
+  
+
   /*
 
   for(int i=0;i<47;i++){
@@ -2337,9 +2444,6 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   */
 
-  std::vector<double> temp_simhits(47,0);
-  std::vector<double> temp_rechits(47,0);
-  std::vector<double> temp_lchits(47,0);
 
   float cp_eta = 0;
   float cp_phi = 0;
@@ -2359,9 +2463,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     cp_eta = it_cp.eta();
     cp_phi = it_cp.phi();
 
-
     /*
-
     // Check only one half plane of a circle
 
     std::cout<< "Phi:"<< cp_phi << std::endl;
@@ -2407,19 +2509,51 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
         unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_);   
 
-
         // Investigation of Scintillator-Eta 2.9 discrepancy
-
 
         float edist = cp_eta - recHitTools_.getPosition(detid_).eta();
         float phidist = cp_phi - recHitTools_.getPosition(detid_).phi();
-        float drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
+        // float drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
 
         float cpPositionAtSimHit_x = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Cos(cp_phi);
         float cpPositionAtSimHit_y = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Sin(cp_phi);
 
         float xdist = cpPositionAtSimHit_x - recHitTools_.getPosition(detid_).x();
         float ydist = cpPositionAtSimHit_y - recHitTools_.getPosition(detid_).y();
+
+
+        std::string detector;
+        std::string thickness;
+        if(recHitTools_.isSilicon(detid_)){
+          detector = "Si";
+          thickness = std::to_string(recHitTools_.getSiThickness(detid_));
+          
+        }
+        else{
+          detector = "Sc";
+        }
+
+        for(const auto& det : detectors){
+            if(det == "" || det == detector || det.find(thickness)){
+            
+            counter_map["Hit Counters"]["Simhit"][det][layer_-1]++;
+
+            plot_map["Diff Eta Plots"]["Simhit"][det].front()->Fill(edist);
+            plot_map["Diff Phi Plots"]["Simhit"][det].front()->Fill(phidist);
+            plot_map["Diff Eta Phi Plots"]["Simhit"][det].front()->Fill(edist,phidist);
+            plot_map["Diff x Plots"]["Simhit"][det].front()->Fill(xdist);
+            plot_map["Diff y Plots"]["Simhit"][det].front()->Fill(ydist);
+            plot_map["Diff x y Plots"]["Simhit"][det].front()->Fill(xdist,ydist);
+
+            plot_map["Diff x Layer Plots"]["Simhit"][det][layer_-1]->Fill(xdist);
+            plot_map["Diff y Layer Plots"]["Simhit"][det][layer_-1]->Fill(ydist);
+            plot_map["Diff Eta Layer Plots"]["Simhit"][det][layer_-1]->Fill(edist);
+            plot_map["Diff Phi Layer Plots"]["Simhit"][det][layer_-1]->Fill(phidist);
+          }
+        }
+
+        /*
+
 
         eta_sim -> Fill(recHitTools_.getPosition(detid_).eta());
         
@@ -2541,8 +2675,10 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_eta_cp_sim_sc_layer_histo[layer_-1]->Fill(edist);
           dist_phi_cp_sim_sc_layer_histo[layer_-1]->Fill(phidist);
         }
+
+        */
     
-	      hit_layer_sim[layer_-1]++;
+	      
 
         if (itcheck != hitMap.end()){
           tmprechits_.push_back(detid_);
@@ -2556,7 +2692,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 		      edist = cp_eta - recHitTools_.getPosition(detid_).eta();
 		      phidist = cp_phi - recHitTools_.getPosition(detid_).phi();
-		      drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
+		      // drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
 
           GlobalPoint rhPosition_ = recHitTools_.getPosition(detid_);
           float rhPosition_x = rhPosition_.x();
@@ -2569,6 +2705,40 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           float ydist = cpPositionAtSimHit_y - recHitTools_.getPosition(detid_).y();
 
           //float drRecHitCP = getDr(rhPosition_x,rhPosition_y,cpPositionAtRecHit_x,cpPositionAtRecHit_y);
+
+
+
+          std::string detector;
+          std::string thickness;
+          if(recHitTools_.isSilicon(detid_)){
+            detector = "Si";
+            thickness = std::to_string(recHitTools_.getSiThickness(detid_));
+            
+          }
+          else{
+            detector = "Sc";
+          }
+
+          for(const auto& det : detectors){
+            if(det == "" || det == detector || det.find(thickness)){
+
+              counter_map["Hit Counters"]["Rechit"][det][layer_-1]++;
+
+              plot_map["Diff Eta Plots"]["Rechit"][det].front()->Fill(edist);
+              plot_map["Diff Phi Plots"]["Rechit"][det].front()->Fill(phidist);
+              plot_map["Diff Eta Phi Plots"]["Rechit"][det].front()->Fill(edist,phidist);
+              plot_map["Diff x Plots"]["Rechit"][det].front()->Fill(xdist);
+              plot_map["Diff y Plots"]["Rechit"][det].front()->Fill(ydist);
+              plot_map["Diff x y Plots"]["Rechit"][det].front()->Fill(xdist,ydist);
+
+              plot_map["Diff x Layer Plots"]["Rechit"][det][layer_-1]->Fill(xdist);
+              plot_map["Diff y Layer Plots"]["Rechit"][det][layer_-1]->Fill(ydist);
+              plot_map["Diff Eta Layer Plots"]["Rechit"][det][layer_-1]->Fill(edist);
+              plot_map["Diff Phi Layer Plots"]["Rechit"][det][layer_-1]->Fill(phidist);
+            }
+          }
+
+          /*
 
 
           dist_x_cp_rec_layer_histo[layer_-1]->Fill(xdist);
@@ -2667,7 +2837,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           }
 
 
-          hit_layer_rec[layer_-1]++;
+          
 
 
 		      dist_dr_cp_rec->Fill(drdist);
@@ -2681,6 +2851,10 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_x_y_cp_rec -> Fill(cpPositionAtRecHit_x-rhPosition_x, cpPositionAtRecHit_y-rhPosition_y);
 
           //dist_dr_cp_rec->Fill(drRecHitCP);
+
+          */
+
+
         }
       }
     }
@@ -2710,13 +2884,48 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 	      float edist = cp_eta - recHitTools_.getPosition(detid_).eta();
 	      float phidist = cp_phi - recHitTools_.getPosition(detid_).phi();
-	      float drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
+	      // float drdist = getDr(recHitTools_.getPosition(detid_).eta(),recHitTools_.getPosition(detid_).phi(),cp_eta,cp_phi);
 
         float cpPositionAtLC_x = -1.*it_lc.z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Cos(cp_phi);
         float cpPositionAtLC_y = -1.*it_lc.z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Sin(cp_phi);
 
         float xdist = cpPositionAtLC_x - recHitTools_.getPosition(detid_).x();
         float ydist = cpPositionAtLC_y - recHitTools_.getPosition(detid_).y();
+
+
+
+        std::string detector;
+        std::string thickness;
+        if(recHitTools_.isSilicon(detid_)){
+          detector = "Si";
+          thickness = std::to_string(recHitTools_.getSiThickness(detid_));
+          
+        }
+        else{
+          detector = "Sc";
+        }
+
+        for(const auto& det : detectors){
+            if(det == "" || det == detector || det.find(thickness)){
+
+            counter_map["Hit Counters"]["LCs"][det][layer_-1]++;
+
+            plot_map["Diff Eta Plots"]["LCs"][det].front()->Fill(edist);
+            plot_map["Diff Phi Plots"]["LCs"][det].front()->Fill(phidist);
+            plot_map["Diff Eta Phi Plots"]["LCs"][det].front()->Fill(edist,phidist);
+            plot_map["Diff x Plots"]["LCs"][det].front()->Fill(xdist);
+            plot_map["Diff y Plots"]["LCs"][det].front()->Fill(ydist);
+            plot_map["Diff x y Plots"]["LCs"][det].front()->Fill(xdist,ydist);
+
+            plot_map["Diff x Layer Plots"]["LCs"][det][layer_-1]->Fill(xdist);
+            plot_map["Diff y Layer Plots"]["LCs"][det][layer_-1]->Fill(ydist);
+            plot_map["Diff Eta Layer Plots"]["LCs"][det][layer_-1]->Fill(edist);
+            plot_map["Diff Phi Layer Plots"]["LCs"][det][layer_-1]->Fill(phidist);
+          }
+        }
+
+
+        /*
 
         dist_eta_cp_lc->Fill(cp_eta - it_lc.eta());
         dist_phi_cp_lc->Fill(cp_phi - it_lc.phi());
@@ -2827,6 +3036,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           dist_eta_cp_lc_sc_layer_histo[layer_-1]->Fill(edist);
           dist_phi_cp_lc_sc_layer_histo[layer_-1]->Fill(phidist);
         }
+
+        */
         hit_layer_lc[layer_-1]++;
       }
     }
@@ -3035,7 +3246,13 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 
   for(int i=0; i<47;i++){
-    
+    for(const auto& obj : objects){
+      for(const auto& det : detectors){
+        plot_map["Hit Layer Plots"][obj][det][i]->Fill(counter_map["Hit Layer Counters"][obj][det][i]);
+        plot_map["Detector Hit Plots"][obj][det].front()->Fill(i,counter_map["Hit Layer Counters"][obj][det][i]);
+
+    /*
+
     hit_layer_sim_histo[i]->Fill(hit_layer_sim[i]);
     hit_layer_rec_histo[i]->Fill(hit_layer_rec[i]);
     hit_layer_lc_histo[i]->Fill(hit_layer_lc[i]);  
@@ -3081,9 +3298,11 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     det_lc_si_300_histo->Fill(i,hit_layer_lc_si_300[i]);
     det_lc_sc_histo->Fill(i,hit_layer_lc_sc[i]);
 
+    */
+
     // Missing Simhits
 
-
+    /*
     if(hit_layer_sim[i]==0){
       std::cout << iEvent.id().event() << std::endl;
       missing_simhits_histo->Fill(i,iEvent.id().event());
@@ -3141,6 +3360,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
     }
 
+    */
 
     /*
 
@@ -3357,8 +3577,10 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
 
     */
+        }
+      }
     }
-
+  }
   tree->Fill();
 
 
