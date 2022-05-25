@@ -23,6 +23,7 @@
 #include <any>
 #include <iomanip>
 #include <cmath>
+#include <typeinfo>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -42,6 +43,8 @@
 
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticleFwd.h"
+
+#include "DataFormats/HGCalReco/interface/Trackster.h"
 
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/ForwardDetId/interface/HGCalDetId.h"
@@ -121,6 +124,7 @@ private:
   // ----------member data ---------------------------
   edm::EDGetTokenT<TrackCollection> tracksToken_;  //used to select what tracks to read from configuration file
   edm::EDGetTokenT<std::vector<CaloParticle>> caloParticlesToken_;
+  edm::EDGetTokenT<std::vector<ticl::Trackster>> ticlSimTrackstersToken;
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsEEToken_; 
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsFHToken_;
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsBHToken_;
@@ -613,6 +617,7 @@ private:
 EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       tracksToken_(consumes<TrackCollection>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
       caloParticlesToken_(consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticles"))), 
+      ticlSimTrackstersToken(consumes<std::vector<ticl::Trackster> >(iConfig.getParameter<edm::InputTag>("Tracksters"))),
       hgcalRecHitsEEToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsEE"))),
       hgcalRecHitsFHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsFH"))),
       hgcalRecHitsBHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsBH"))),
@@ -763,7 +768,7 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       t_name = "Diff Eta Plots: "  + obj + " " + det;
       plot_map["Diff Eta Plots"][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
 
-      t_name = "Diff Eta Plots: "  + obj + " " + det;
+      t_name = "Diff Phi Plots: "  + obj + " " + det;
       plot_map["Diff Phi Plots"][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
 
       //t_name = "Diff Eta Phi Plots: "  + obj + " " + det;
@@ -1451,7 +1456,7 @@ EfficiencyStudies::~EfficiencyStudies() {
   std::vector<TString> axes;
 
 
-  /*
+
 
   // Energy Histograms
 
@@ -1489,6 +1494,14 @@ EfficiencyStudies::~EfficiencyStudies() {
   std::vector<TH1F*> hists = {};
   TString t_name;
   TString ttitle;
+
+  //
+
+  //plot_map["Diff x Layer Plots"][obj][det][layer_-1]
+  axes = {"#Delta #eta", "# Occurence"};
+  createTH1Plot(c1, plot_map["Connectivity Plots"]["Rechits"][""].front(),"Diff_Eta_CP_Sim.png", axes, folder);
+
+  /*
 
   for(int i=1; i<48; i++){
 
@@ -2371,6 +2384,15 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::map<DetId, const HGCRecHit*> hitMap;
   fillHitMap(hitMap, *recHitHandleEE, *recHitHandleFH, *recHitHandleBH);
 
+
+  edm::Handle<std::vector<ticl::Trackster>> ticlSimTracksters;
+  iEvent.getByToken(ticlSimTrackstersToken, ticlSimTracksters);
+  const std::vector<ticl::Trackster>& tracksters = *ticlSimTracksters; 
+
+  std::cout<<"Size of TICL Tracksters: " << tracksters.size()<<std::endl;
+  //std::cout<<"Size of TICL Tracksters: " << tracksters[0].trackPtr().size()<<std::endl;
+
+
   // init vars
   const CaloGeometry &geom = iSetup.getData(caloGeomToken_);
   recHitTools_.setGeometry(geom);
@@ -2390,20 +2412,33 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int nRechits = 0;
   int nLChits = 0;
 
-  typedef std::map<std::string, std::vector<int>> detmap;
+  typedef std::map<std::string, std::vector<int>> layerdetmap;
+  typedef std::map<std::string, int> detmap;
+
+  typedef std::map<std::string, layerdetmap> layerobjmap;
   typedef std::map<std::string, detmap> objmap;
 
-  std::map<std::string, objmap> counter_map;
+  std::map<std::string, layerobjmap> counter_map;
+  std::map<std::string, objmap> connectivity_counter_map;
+  objmap skip_counter_map;
+  
 
   std::vector<std::string> objects = {"Simhits", "Rechits", "LCs"};
   std::vector<std::string> detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sci"};
 
   TString t_name;
+
   for(const auto& obj : objects){
     for(const auto& det : detectors){
       std::vector<int> counter(47,0);
       counter_map["Hit Counters"][obj][det]=counter;
-  
+      connectivity_counter_map["Connectivity"][obj][det]=0;
+      connectivity_counter_map["Skip"][obj][det]=0;
+      connectivity_counter_map["Miss"][obj][det]=0;
+      connectivity_counter_map["Max"][obj][det]=0;
+      skip_counter_map[obj][det]=0;
+    }
+  }
 
   std::vector<int> hit_layer_sim(47,0);
   std::vector<int> hit_layer_sim_si(47,0);
@@ -2423,7 +2458,9 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::vector<int> hit_layer_lc_si_200(47,0);
   std::vector<int> hit_layer_lc_si_300(47,0);
   std::vector<int> hit_layer_lc_sc(47,0);
-
+  
+  float cp_eta = 0;
+  float cp_phi = 0;
   
 
   /*
@@ -2445,11 +2482,9 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   */
 
 
-  float cp_eta = 0;
-  float cp_phi = 0;
-
 
   // Loop over Caloparticles 
+
 
 
 
@@ -2460,26 +2495,16 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     nCalo++;
     const CaloParticle& cp = ((it_cp)); 
 
-    cp_eta = it_cp.eta();
-    cp_phi = it_cp.phi();
+    //cp_eta = it_cp.eta();
+    //cp_phi = it_cp.phi();
 
-    /*
-    // Check only one half plane of a circle
-
-    std::cout<< "Phi:"<< cp_phi << std::endl;
-
-    if(-M_PI < cp_phi && cp_phi <0){
-      std::cout << "Triggered" << std::endl;
-      continue;
-    }
-
-    */
-
-    eta_calo -> Fill(cp_eta); // Investigation of Scintillator-Eta 2.9 discrepancy
-    pid_cp_histo -> Fill(cp.pdgId());
+    //eta_calo -> Fill(cp_eta); // Investigation of Scintillator-Eta 2.9 discrepancy
+    //pid_cp_histo -> Fill(cp.pdgId());
 
     const SimClusterRefVector& simclusters = cp.simClusters();
     // std::cout<<"CP number of Simhits:" << simclusters.numberOfSimHits() << std::endl;    
+
+
 
     for (const auto& it_simc : simclusters){
 
@@ -2488,6 +2513,7 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       const SimCluster& simc = (*(it_simc));
 
       const std::vector<SimTrack>& simt = simc.g4Tracks();
+
       for (const auto& it_simt : simt){
         //std::cout << it_simt <<endl;
         pid_sim_histo -> Fill(it_simt.type());
@@ -2521,39 +2547,36 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         float xdist = cpPositionAtSimHit_x - recHitTools_.getPosition(detid_).x();
         float ydist = cpPositionAtSimHit_y - recHitTools_.getPosition(detid_).y();
 
-
         std::string detector;
         std::string thickness;
         if(recHitTools_.isSilicon(detid_)){
           detector = "Si";
           thickness = std::to_string(recHitTools_.getSiThickness(detid_));
-          
         }
         else{
           detector = "Sc";
         }
 
+
+        std::string obj = "Simhits";
         for(const auto& det : detectors){
-            if(det == "" || det == detector || det.find(thickness)){
-            
-            counter_map["Hit Counters"]["Simhit"][det][layer_-1]++;
+          if(det == ""|| det == detector || det.find(thickness)){
 
-            plot_map["Diff Eta Plots"]["Simhit"][det].front()->Fill(edist);
-            plot_map["Diff Phi Plots"]["Simhit"][det].front()->Fill(phidist);
-            plot_map["Diff Eta Phi Plots"]["Simhit"][det].front()->Fill(edist,phidist);
-            plot_map["Diff x Plots"]["Simhit"][det].front()->Fill(xdist);
-            plot_map["Diff y Plots"]["Simhit"][det].front()->Fill(ydist);
-            plot_map["Diff x y Plots"]["Simhit"][det].front()->Fill(xdist,ydist);
-
-            plot_map["Diff x Layer Plots"]["Simhit"][det][layer_-1]->Fill(xdist);
-            plot_map["Diff y Layer Plots"]["Simhit"][det][layer_-1]->Fill(ydist);
-            plot_map["Diff Eta Layer Plots"]["Simhit"][det][layer_-1]->Fill(edist);
-            plot_map["Diff Phi Layer Plots"]["Simhit"][det][layer_-1]->Fill(phidist);
+            counter_map["Hit Counters"][obj][det][layer_-1]++;
+            plot_map["Diff Eta Plots"][obj][det].front()->Fill(edist);
+            plot_map["Diff Phi Plots"][obj][det].front()->Fill(phidist);
+            //plot_map["Diff Eta Phi Plots"][obj][det].front()->Fill(edist,phidist);
+            plot_map["Diff x Plots"][obj][det].front()->Fill(xdist);
+            plot_map["Diff y Plots"][obj][det].front()->Fill(ydist);
+            //plot_map["Diff x y Plots"][obj][det].front()->Fill(xdist,ydist);
+            plot_map["Diff x Layer Plots"][obj][det][layer_-1]->Fill(xdist);
+            plot_map["Diff y Layer Plots"][obj][det][layer_-1]->Fill(ydist);
+            plot_map["Diff Eta Layer Plots"][obj][det][layer_-1]->Fill(edist);
+            plot_map["Diff Phi Layer Plots"][obj][det][layer_-1]->Fill(phidist);
           }
         }
 
         /*
-
 
         eta_sim -> Fill(recHitTools_.getPosition(detid_).eta());
         
@@ -2712,29 +2735,29 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
           std::string thickness;
           if(recHitTools_.isSilicon(detid_)){
             detector = "Si";
-            thickness = std::to_string(recHitTools_.getSiThickness(detid_));
-            
+            thickness = std::to_string(recHitTools_.getSiThickness(detid_)); 
           }
           else{
             detector = "Sc";
           }
 
+          std::string obj = "Rechits";
           for(const auto& det : detectors){
             if(det == "" || det == detector || det.find(thickness)){
 
-              counter_map["Hit Counters"]["Rechit"][det][layer_-1]++;
+              counter_map["Hit Counters"][obj][det][layer_-1]++;
 
-              plot_map["Diff Eta Plots"]["Rechit"][det].front()->Fill(edist);
-              plot_map["Diff Phi Plots"]["Rechit"][det].front()->Fill(phidist);
-              plot_map["Diff Eta Phi Plots"]["Rechit"][det].front()->Fill(edist,phidist);
-              plot_map["Diff x Plots"]["Rechit"][det].front()->Fill(xdist);
-              plot_map["Diff y Plots"]["Rechit"][det].front()->Fill(ydist);
-              plot_map["Diff x y Plots"]["Rechit"][det].front()->Fill(xdist,ydist);
+              plot_map["Diff Eta Plots"][obj][det].front()->Fill(edist);
+              plot_map["Diff Phi Plots"][obj][det].front()->Fill(phidist);
+              //plot_map["Diff Eta Phi Plots"][obj][det].front()->Fill(edist,phidist);
+              plot_map["Diff x Plots"][obj][det].front()->Fill(xdist);
+              plot_map["Diff y Plots"][obj][det].front()->Fill(ydist);
+              //plot_map["Diff x y Plots"][obj][det].front()->Fill(xdist,ydist);
 
-              plot_map["Diff x Layer Plots"]["Rechit"][det][layer_-1]->Fill(xdist);
-              plot_map["Diff y Layer Plots"]["Rechit"][det][layer_-1]->Fill(ydist);
-              plot_map["Diff Eta Layer Plots"]["Rechit"][det][layer_-1]->Fill(edist);
-              plot_map["Diff Phi Layer Plots"]["Rechit"][det][layer_-1]->Fill(phidist);
+              plot_map["Diff x Layer Plots"][obj][det][layer_-1]->Fill(xdist);
+              plot_map["Diff y Layer Plots"][obj][det][layer_-1]->Fill(ydist);
+              plot_map["Diff Eta Layer Plots"][obj][det][layer_-1]->Fill(edist);
+              plot_map["Diff Phi Layer Plots"][obj][det][layer_-1]->Fill(phidist);
             }
           }
 
@@ -2862,12 +2885,12 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   
 
   // Loop over LCs  
-  
+
   for (const auto& it_lc : lcs) {
 
-    if(M_PI < cp_eta && cp_phi <0){
-      continue;
-    }
+    //if(M_PI < cp_eta && cp_phi <0){
+    //  continue;
+    //}
 
     nLC++;
     const std::vector<std::pair<DetId, float>> &hf = it_lc.hitsAndFractions();
@@ -2892,35 +2915,33 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
         float xdist = cpPositionAtLC_x - recHitTools_.getPosition(detid_).x();
         float ydist = cpPositionAtLC_y - recHitTools_.getPosition(detid_).y();
 
-
-
         std::string detector;
         std::string thickness;
         if(recHitTools_.isSilicon(detid_)){
           detector = "Si";
-          thickness = std::to_string(recHitTools_.getSiThickness(detid_));
-          
+          thickness = std::to_string(recHitTools_.getSiThickness(detid_));   
         }
         else{
           detector = "Sc";
         }
 
+        std::string obj = "LCs";
         for(const auto& det : detectors){
-            if(det == "" || det == detector || det.find(thickness)){
+          if(det == "" || det == detector || det.find(thickness)){
 
-            counter_map["Hit Counters"]["LCs"][det][layer_-1]++;
+            counter_map["Hit Counters"][obj][det][layer_-1]++;
 
-            plot_map["Diff Eta Plots"]["LCs"][det].front()->Fill(edist);
-            plot_map["Diff Phi Plots"]["LCs"][det].front()->Fill(phidist);
-            plot_map["Diff Eta Phi Plots"]["LCs"][det].front()->Fill(edist,phidist);
-            plot_map["Diff x Plots"]["LCs"][det].front()->Fill(xdist);
-            plot_map["Diff y Plots"]["LCs"][det].front()->Fill(ydist);
-            plot_map["Diff x y Plots"]["LCs"][det].front()->Fill(xdist,ydist);
+            plot_map["Diff Eta Plots"][obj][det].front()->Fill(edist);
+            plot_map["Diff Phi Plots"][obj][det].front()->Fill(phidist);
+            //plot_map["Diff Eta Phi Plots"][obj][det].front()->Fill(edist,phidist);
+            plot_map["Diff x Plots"][obj][det].front()->Fill(xdist);
+            plot_map["Diff y Plots"][obj][det].front()->Fill(ydist);
+            //plot_map["Diff x y Plots"][obj][det].front()->Fill(xdist,ydist);
 
-            plot_map["Diff x Layer Plots"]["LCs"][det][layer_-1]->Fill(xdist);
-            plot_map["Diff y Layer Plots"]["LCs"][det][layer_-1]->Fill(ydist);
-            plot_map["Diff Eta Layer Plots"]["LCs"][det][layer_-1]->Fill(edist);
-            plot_map["Diff Phi Layer Plots"]["LCs"][det][layer_-1]->Fill(phidist);
+            plot_map["Diff x Layer Plots"][obj][det][layer_-1]->Fill(xdist);
+            plot_map["Diff y Layer Plots"][obj][det][layer_-1]->Fill(ydist);
+            plot_map["Diff Eta Layer Plots"][obj][det][layer_-1]->Fill(edist);
+            plot_map["Diff Phi Layer Plots"][obj][det][layer_-1]->Fill(phidist);
           }
         }
 
@@ -3043,7 +3064,6 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
   }
   
-
   cout<<"nTrack = "<<nTrack<<endl;
   cout<<"nCaloparticles = "<<nCalo<<endl;
   cout<<"nSimparticles = "<<nSim<<endl;
@@ -3064,6 +3084,8 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   val_particle__sim_histo->Fill(nSim);
   val_particle__lc_histo->Fill(nLC);
+
+  /*
 
   int lc_connectivity_counter = 0;
   int reccluster_connectivity_counter = 0;
@@ -3244,346 +3266,450 @@ void EfficiencyStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
                                hit_layer_lc_si_300, hit_layer_rec_si_300, hit_layer_sim_si_300,
                                hit_layer_lc_sc, hit_layer_rec_sc, hit_layer_sim_sc};
 
-
+*/
   for(int i=0; i<47;i++){
     for(const auto& obj : objects){
       for(const auto& det : detectors){
-        plot_map["Hit Layer Plots"][obj][det][i]->Fill(counter_map["Hit Layer Counters"][obj][det][i]);
-        plot_map["Detector Hit Plots"][obj][det].front()->Fill(i,counter_map["Hit Layer Counters"][obj][det][i]);
-
-    /*
-
-    hit_layer_sim_histo[i]->Fill(hit_layer_sim[i]);
-    hit_layer_rec_histo[i]->Fill(hit_layer_rec[i]);
-    hit_layer_lc_histo[i]->Fill(hit_layer_lc[i]);  
-
-    hit_layer_sim_si_histo[i]->Fill(hit_layer_sim_si[i]);
-    hit_layer_rec_si_histo[i]->Fill(hit_layer_rec_si[i]);
-    hit_layer_lc_si_histo[i]->Fill(hit_layer_lc_si[i]);
-
-    hit_layer_sim_si_120_histo[i]->Fill(hit_layer_sim_si_120[i]);
-    hit_layer_rec_si_120_histo[i]->Fill(hit_layer_rec_si_120[i]);
-    hit_layer_lc_si_120_histo[i]->Fill(hit_layer_lc_si_120[i]);
-
-    hit_layer_sim_si_200_histo[i]->Fill(hit_layer_sim_si_200[i]);
-    hit_layer_rec_si_200_histo[i]->Fill(hit_layer_rec_si_200[i]);
-    hit_layer_lc_si_200_histo[i]->Fill(hit_layer_lc_si_200[i]);
-
-    hit_layer_sim_si_300_histo[i]->Fill(hit_layer_sim_si_300[i]);
-    hit_layer_rec_si_300_histo[i]->Fill(hit_layer_rec_si_300[i]);
-    hit_layer_lc_si_300_histo[i]->Fill(hit_layer_lc_si_300[i]);
-
-    hit_layer_sim_sc_histo[i]->Fill(hit_layer_sim_sc[i]);
-    hit_layer_rec_sc_histo[i]->Fill(hit_layer_rec_sc[i]);
-    hit_layer_lc_sc_histo[i]->Fill(hit_layer_lc_sc[i]);  
-    
-    det_sim_histo->Fill(i,hit_layer_sim[i]);
-    det_sim_si_histo->Fill(i,hit_layer_sim_si[i]);
-    det_sim_si_120_histo->Fill(i,hit_layer_sim_si_120[i]);
-    det_sim_si_200_histo->Fill(i,hit_layer_sim_si_120[i]);
-    det_sim_si_300_histo->Fill(i,hit_layer_sim_si_300[i]);
-    det_sim_sc_histo->Fill(i,hit_layer_sim_sc[i]);
-
-    det_rec_histo->Fill(i,hit_layer_rec[i]);
-    det_rec_si_histo->Fill(i,hit_layer_rec_si[i]);
-    det_rec_si_120_histo->Fill(i,hit_layer_rec_si_120[i]);
-    det_rec_si_200_histo->Fill(i,hit_layer_rec_si_200[i]);
-    det_rec_si_300_histo->Fill(i,hit_layer_rec_si_300[i]);
-    det_rec_sc_histo->Fill(i,hit_layer_rec_sc[i]);
-
-    det_lc_histo->Fill(i,hit_layer_lc[i]);
-    det_lc_si_histo->Fill(i,hit_layer_lc_si[i]);
-    det_lc_si_120_histo->Fill(i,hit_layer_lc_si_120[i]);
-    det_lc_si_200_histo->Fill(i,hit_layer_lc_si_200[i]);
-    det_lc_si_300_histo->Fill(i,hit_layer_lc_si_300[i]);
-    det_lc_sc_histo->Fill(i,hit_layer_lc_sc[i]);
-
-    */
-
-    // Missing Simhits
-
-    /*
-    if(hit_layer_sim[i]==0){
-      std::cout << iEvent.id().event() << std::endl;
-      missing_simhits_histo->Fill(i,iEvent.id().event());
-    }
-
-    // Loop through the different counters for the various connectivity scores and fill the histograms
-
-    for(unsigned j=0; j<connectivity_counters.size();j++){
+        plot_map["Hit Layer Plots"][obj][det][i]->Fill(counter_map["Hit Counters"][obj][det][i]);
+        plot_map["Detector Hit Plots"][obj][det].front()->Fill(i,counter_map["Hit Counters"][obj][det][i]);
 
 
-      if(hit_layer_counters[j][i]!=0){
+        // Connectivity Histograms
 
-        det_bool_histos[j]->Fill(i);
-        connectivity_counters[j]++;
-        connectivity_skip_counters[j]++;
-	      skip_counters[j]=skip_;
-        if(connectivity_miss_counters[j]!=0){connectivity_miss_histos[j]->Fill(connectivity_miss_counters[j]);}
-        connectivity_miss_counters[j]=0;
-        if(i==46){
-          connectivity_histos[j]->Fill(connectivity_counters[j]);
-          connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
 
-          if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
-          connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+        //if(hit_layer_counters[j][i]!=0){
+        if(counter_map["Hit Counters"][obj][det][i]!=0){
 
-          for(int k=i+1-connectivity_counters[j];k<i+1;k++){
+          plot_map["Detector Hit Plots"][obj][det].front()->Fill(i);
+          connectivity_counter_map["Connectivity"][obj][det]++;
+          connectivity_counter_map["Skip"][obj][det]++;
+          skip_counter_map[obj][det]++;
+          if(connectivity_counter_map["Miss"][obj][det]!=0){plot_map["Miss Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Miss"][obj][det]);}
+          connectivity_counter_map["Miss"][obj][det]=0;
+          if(i==46){
+            plot_map["Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Connectivity"][obj][det]);
+            plot_map["Skip Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Skip"][obj][det]);
+            if(connectivity_counter_map["Max"][obj][det]<connectivity_counter_map["Connectivity"][obj][det]){
+              plot_map["Max Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Max"][obj][det]);
+            }
+
+            for(int k=i+1-connectivity_counter_map["Connectivity"][obj][det]; k<i+1; k++){
+              plot_map["W Connectivity Plots"][obj][det].front()->Fill(k, connectivity_counter_map["Connectivity"][obj][det]);
+            }
+          }
+        }
+
+        /*
+
+          det_bool_histos[j]->Fill(i);
+          connectivity_counters[j]++;
+          connectivity_skip_counters[j]++;
+          skip_counters[j]=skip_;
+          if(connectivity_miss_counters[j]!=0){connectivity_miss_histos[j]->Fill(connectivity_miss_counters[j]);}
+          connectivity_miss_counters[j]=0;
+          if(i==46){
+            connectivity_histos[j]->Fill(connectivity_counters[j]);
+            connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+
+            if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+            connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+
+            for(int k=i+1-connectivity_counters[j];k<i+1;k++){
+              connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
+            }
+          }
+        }
+        */
+        else{
+          connectivity_counter_map["Miss"][obj][det]++;
+          if(skip_counter_map[obj][det]!=0){
+            skip_counter_map[obj][det]--;
+            connectivity_counter_map["Skip"][obj][det]++;
+          }
+          else{
+            if(connectivity_counter_map["Skip"][obj][det]-skip_>0){plot_map["Skip Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Connectivity"][obj][det]);}
+
+            connectivity_counter_map["Skip"][obj][det]=0;
+          }
+
+
+          if(connectivity_counter_map["Connectivity"][obj][det]!=0){
+            plot_map["Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Connectivity"][det][obj]);
+          }
+
+          for(int k=i-connectivity_counter_map["Connectivity"][obj][det]; k<i; k++){
+            plot_map["W Connectivity Plots"][obj][det].front()->Fill(k,connectivity_counter_map["Connectivity"][obj][det]);
+          }
+          if(connectivity_counter_map["Max"][obj][det]<connectivity_counter_map["Connectivity"][obj][det]){
+            connectivity_counter_map["Max"][obj][det]=connectivity_counter_map["Connectivity"][obj][det];
+          }
+          connectivity_counter_map["Connectivity"][obj][det]=0;
+          if(i==46){
+            plot_map["Max Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Max"][obj][det]);
+            plot_map["Miss Connectivity Plots"][obj][det].front()->Fill(connectivity_counter_map["Miss"][obj][det]);
+          }
+        }
+      }
+
+
+        /*
+          connectivity_miss_counters[j]++;
+
+          if(skip_counters[j] !=0){
+            skip_counters[j]--;
+            connectivity_skip_counters[j]++;
+          }
+          else{
+            if(connectivity_skip_counters[j]-skip_>0){connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]-skip_);}
+
+            connectivity_skip_counters[j] = 0;
+          }
+          if(connectivity_counters[j]!=0){connectivity_histos[j]->Fill(connectivity_counters[j]);}
+          for(int k=i-connectivity_counters[j]; k<i;k++){
             connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
           }
-        }
-      }
-
-      else{
-
-        connectivity_miss_counters[j]++;
-
-        if(skip_counters[j] !=0){
-          skip_counters[j]--;
-          connectivity_skip_counters[j]++;
-        }
-        else{
-          if(connectivity_skip_counters[j]-skip_>0){connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]-skip_);}
-
-          connectivity_skip_counters[j] = 0;
-        }
-        if(connectivity_counters[j]!=0){connectivity_histos[j]->Fill(connectivity_counters[j]);}
-        for(int k=i-connectivity_counters[j]; k<i;k++){
-          connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
-        }
-        if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
-        connectivity_counters[j]=0;
-        if(i==46){
-          connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
-          connectivity_miss_histos[j] ->Fill(connectivity_miss_counters[j]);
-        }
-      }
-    }
-
-    */
-
-    /*
-
-    // Create Plots for Simhits 
-
-    // Silicon
-
-    if (hit_layer_sim_si[i]!=0){
-      det_bool_sim_si_histo->Fill(i);
-      simcluster_si_connectivity_counter++;
-      if (i==46){
-        connectivity_sim_si_histo->Fill(simcluster_si_connectivity_counter);
-        if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
-        connectivity_max_sim_si_histo->Fill(max_simcluster_si_connectivity_counter);
-        for(int j=i+1-simcluster_si_connectivity_counter; j<i+1;j++){
-          connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_sim_si_histo->Fill(simcluster_si_connectivity_counter);
-      for(int j=i-simcluster_si_connectivity_counter; j<i;j++){
-        connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
-      }
-      if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
-      simcluster_si_connectivity_counter = 0;
-    }
-
-    // Scintillator
-
-    if (hit_layer_sim_sc[i]!=0){
-      det_bool_sim_sc_histo->Fill(i);
-      simcluster_sc_connectivity_counter++;
-      if (i==46){
-        connectivity_sim_sc_histo->Fill(simcluster_sc_connectivity_counter);
-        if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
-        connectivity_max_sim_sc_histo->Fill(max_simcluster_sc_connectivity_counter);
-        for(int j=i+1-simcluster_sc_connectivity_counter; j<i+1;j++){
-          connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_sim_sc_histo->Fill(simcluster_sc_connectivity_counter);
-      for(int j=i-simcluster_sc_connectivity_counter; j<i;j++){
-        connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
-      }
-      if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
-      simcluster_sc_connectivity_counter = 0;
-    }
-
-    // Total
-
-    if (hit_layer_sim[i]!=0){
-      det_bool_sim_histo->Fill(i);
-      simcluster_connectivity_counter++;
-      if (i==46){
-        connectivity_sim_histo->Fill(simcluster_connectivity_counter);
-        if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
-        connectivity_max_sim_histo->Fill(max_simcluster_connectivity_counter);
-        for(int j=i+1-simcluster_connectivity_counter; j<i+1;j++){
-          connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_sim_histo->Fill(simcluster_connectivity_counter);
-      for(int j=i-simcluster_connectivity_counter; j<i;j++){
-        connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
-      }
-      if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
-      simcluster_connectivity_counter = 0;
-    }
-
-    // Create Plots for Rechits
-
-    // Si
-
-    if (hit_layer_rec_si[i]!=0){
-      det_bool_rec_si_histo->Fill(i);
-      reccluster_si_connectivity_counter++;
-      if (i==46){
-        connectivity_rec_si_histo->Fill(reccluster_si_connectivity_counter);
-        if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
-        connectivity_max_rec_si_histo->Fill(max_reccluster_si_connectivity_counter);
-        for(int j=i+1-reccluster_si_connectivity_counter; j<i+1;j++){
-          connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_rec_si_histo->Fill(reccluster_si_connectivity_counter);
-      for(int j=i-reccluster_si_connectivity_counter; j<i;j++){
-        connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
-      }
-      if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
-      reccluster_si_connectivity_counter = 0;
-    }
-
-    // Scintillator
-
-    if (hit_layer_rec_sc[i]!=0){
-      det_bool_rec_sc_histo->Fill(i);
-      reccluster_sc_connectivity_counter++;
-      if (i==46){
-        connectivity_rec_sc_histo->Fill(reccluster_sc_connectivity_counter);
-        if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
-        connectivity_max_rec_sc_histo->Fill(max_reccluster_sc_connectivity_counter);
-        for(int j=i+1-reccluster_sc_connectivity_counter; j<i+1;j++){
-          connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_rec_sc_histo->Fill(reccluster_sc_connectivity_counter);
-      for(int j=i-reccluster_sc_connectivity_counter; j<i;j++){
-        connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
-      }
-      if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
-      reccluster_sc_connectivity_counter = 0;
-    }
-    
-    // Total
-
-    if (hit_layer_rec[i]!=0){
-      det_bool_rec_histo->Fill(i);
-      reccluster_connectivity_counter++;
-      if (i==46){
-        connectivity_rec_histo->Fill(reccluster_connectivity_counter);
-        if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
-        connectivity_max_rec_histo->Fill(max_reccluster_connectivity_counter);
-        for(int j=i+1-reccluster_connectivity_counter; j<i+1;j++){
-          connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
-        }
-      }
-    }
-    else {
-      connectivity_rec_histo->Fill(reccluster_connectivity_counter);
-      for(int j=i-reccluster_connectivity_counter; j<i;j++){
-        connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
-      }
-      if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
-      reccluster_connectivity_counter = 0;
-    }
-
-    // Create Plots for LC
-
-    // Si
-
-    if (hit_layer_lc_si[i]!=0){
-      det_bool_lc_si_histo->Fill(i);
-      lc_si_connectivity_counter++;
-      if (i==46){
-        connectivity_lc_si_histo->Fill(lc_si_connectivity_counter);
-        if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
-        connectivity_max_lc_si_histo->Fill(max_lc_si_connectivity_counter);
-        for(int j=i+1-lc_si_connectivity_counter; j<i+1;j++){
-          connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
+          if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+          connectivity_counters[j]=0;
+          if(i==46){
+            connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+            connectivity_miss_histos[j] ->Fill(connectivity_miss_counters[j]);
           }
         }
       }
-    else {
-      connectivity_lc_si_histo->Fill(lc_si_connectivity_counter);
-      for(int j=i-lc_si_connectivity_counter; j<i;j++){
-        connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
+
+/*
+        /*
+
+        hit_layer_sim_histo[i]->Fill(hit_layer_sim[i]);
+        hit_layer_rec_histo[i]->Fill(hit_layer_rec[i]);
+        hit_layer_lc_histo[i]->Fill(hit_layer_lc[i]);  
+
+        hit_layer_sim_si_histo[i]->Fill(hit_layer_sim_si[i]);
+        hit_layer_rec_si_histo[i]->Fill(hit_layer_rec_si[i]);
+        hit_layer_lc_si_histo[i]->Fill(hit_layer_lc_si[i]);
+
+        hit_layer_sim_si_120_histo[i]->Fill(hit_layer_sim_si_120[i]);
+        hit_layer_rec_si_120_histo[i]->Fill(hit_layer_rec_si_120[i]);
+        hit_layer_lc_si_120_histo[i]->Fill(hit_layer_lc_si_120[i]);
+
+        hit_layer_sim_si_200_histo[i]->Fill(hit_layer_sim_si_200[i]);
+        hit_layer_rec_si_200_histo[i]->Fill(hit_layer_rec_si_200[i]);
+        hit_layer_lc_si_200_histo[i]->Fill(hit_layer_lc_si_200[i]);
+
+        hit_layer_sim_si_300_histo[i]->Fill(hit_layer_sim_si_300[i]);
+        hit_layer_rec_si_300_histo[i]->Fill(hit_layer_rec_si_300[i]);
+        hit_layer_lc_si_300_histo[i]->Fill(hit_layer_lc_si_300[i]);
+
+        hit_layer_sim_sc_histo[i]->Fill(hit_layer_sim_sc[i]);
+        hit_layer_rec_sc_histo[i]->Fill(hit_layer_rec_sc[i]);
+        hit_layer_lc_sc_histo[i]->Fill(hit_layer_lc_sc[i]);  
+        
+        det_sim_histo->Fill(i,hit_layer_sim[i]);
+        det_sim_si_histo->Fill(i,hit_layer_sim_si[i]);
+        det_sim_si_120_histo->Fill(i,hit_layer_sim_si_120[i]);
+        det_sim_si_200_histo->Fill(i,hit_layer_sim_si_120[i]);
+        det_sim_si_300_histo->Fill(i,hit_layer_sim_si_300[i]);
+        det_sim_sc_histo->Fill(i,hit_layer_sim_sc[i]);
+
+        det_rec_histo->Fill(i,hit_layer_rec[i]);
+        det_rec_si_histo->Fill(i,hit_layer_rec_si[i]);
+        det_rec_si_120_histo->Fill(i,hit_layer_rec_si_120[i]);
+        det_rec_si_200_histo->Fill(i,hit_layer_rec_si_200[i]);
+        det_rec_si_300_histo->Fill(i,hit_layer_rec_si_300[i]);
+        det_rec_sc_histo->Fill(i,hit_layer_rec_sc[i]);
+
+        det_lc_histo->Fill(i,hit_layer_lc[i]);
+        det_lc_si_histo->Fill(i,hit_layer_lc_si[i]);
+        det_lc_si_120_histo->Fill(i,hit_layer_lc_si_120[i]);
+        det_lc_si_200_histo->Fill(i,hit_layer_lc_si_200[i]);
+        det_lc_si_300_histo->Fill(i,hit_layer_lc_si_300[i]);
+        det_lc_sc_histo->Fill(i,hit_layer_lc_sc[i]);
+
+        */
+
+        // Missing Simhits
+
+        /*
+        if(hit_layer_sim[i]==0){
+          std::cout << iEvent.id().event() << std::endl;
+          missing_simhits_histo->Fill(i,iEvent.id().event());
         }
-      if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
-      lc_si_connectivity_counter = 0;
-      }
 
-    // Scintillator
+        // Loop through the different counters for the various connectivity scores and fill the histograms
 
-    if (hit_layer_lc_sc[i]!=0){
-      det_bool_lc_sc_histo->Fill(i);
-      lc_sc_connectivity_counter++;
-      if (i==46){
-        connectivity_lc_sc_histo->Fill(lc_sc_connectivity_counter);
-        if (max_lc_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_lc_sc_connectivity_counter = lc_sc_connectivity_counter;}
-        connectivity_max_lc_sc_histo->Fill(max_lc_sc_connectivity_counter);
-        for(int j=i+1-lc_sc_connectivity_counter; j<i+1;j++){
-          connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
+        for(unsigned j=0; j<connectivity_counters.size();j++){
+
+
+          if(hit_layer_counters[j][i]!=0){
+
+            det_bool_histos[j]->Fill(i);
+            connectivity_counters[j]++;
+            connectivity_skip_counters[j]++;
+	          skip_counters[j]=skip_;
+            if(connectivity_miss_counters[j]!=0){connectivity_miss_histos[j]->Fill(connectivity_miss_counters[j]);}
+            connectivity_miss_counters[j]=0;
+            if(i==46){
+              connectivity_histos[j]->Fill(connectivity_counters[j]);
+              connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]);
+
+              if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+              connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+
+              for(int k=i+1-connectivity_counters[j];k<i+1;k++){
+                connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
+              }
+            }
+          }
+
+          else{
+
+            connectivity_miss_counters[j]++;
+
+            if(skip_counters[j] !=0){
+              skip_counters[j]--;
+              connectivity_skip_counters[j]++;
+            }
+            else{
+              if(connectivity_skip_counters[j]-skip_>0){connectivity_skip_histos[j]->Fill(connectivity_skip_counters[j]-skip_);}
+
+              connectivity_skip_counters[j] = 0;
+            }
+            if(connectivity_counters[j]!=0){connectivity_histos[j]->Fill(connectivity_counters[j]);}
+            for(int k=i-connectivity_counters[j]; k<i;k++){
+              connectivity_w_histos[j]->Fill(k,connectivity_counters[j]);
+            }
+            if(connectivity_max_counters[j]<connectivity_counters[j]){connectivity_max_counters[j] = connectivity_counters[j];}
+            connectivity_counters[j]=0;
+            if(i==46){
+              connectivity_max_histos[j]->Fill(connectivity_max_counters[j]);
+              connectivity_miss_histos[j] ->Fill(connectivity_miss_counters[j]);
+            }
           }
         }
-      }
-    else {
-      connectivity_lc_sc_histo->Fill(lc_sc_connectivity_counter);
-      for(int j=i-lc_sc_connectivity_counter; j<i;j++){
-        connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
-        }
-      if (max_lc_sc_connectivity_counter < lc_sc_connectivity_counter){max_lc_si_connectivity_counter = lc_sc_connectivity_counter;}
-      lc_sc_connectivity_counter = 0;
-      }
 
+        */
 
-    if (hit_layer_lc[i]!=0){
-      det_bool_lc_histo->Fill(i);
-      lc_connectivity_counter++;
-      if (i==46){
-        connectivity_lc_histo->Fill(lc_connectivity_counter);
-        if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
-        connectivity_max_lc_histo->Fill(max_lc_connectivity_counter);
-        for(int j=i+1-lc_connectivity_counter; j<i+1;j++){
-          connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
+        /*
+
+        // Create Plots for Simhits 
+
+        // Silicon
+
+        if (hit_layer_sim_si[i]!=0){
+          det_bool_sim_si_histo->Fill(i);
+          simcluster_si_connectivity_counter++;
+          if (i==46){
+            connectivity_sim_si_histo->Fill(simcluster_si_connectivity_counter);
+            if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
+            connectivity_max_sim_si_histo->Fill(max_simcluster_si_connectivity_counter);
+            for(int j=i+1-simcluster_si_connectivity_counter; j<i+1;j++){
+              connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
+            }
           }
         }
-      }
-    else {
-      connectivity_lc_histo->Fill(lc_connectivity_counter);
-      for(int j=i-lc_connectivity_counter; j<i;j++){
-        connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
+        else {
+          connectivity_sim_si_histo->Fill(simcluster_si_connectivity_counter);
+          for(int j=i-simcluster_si_connectivity_counter; j<i;j++){
+            connectivity_w_sim_si_histo->Fill(j, simcluster_si_connectivity_counter);
+          }
+          if (max_simcluster_si_connectivity_counter < simcluster_si_connectivity_counter){max_simcluster_si_connectivity_counter = simcluster_si_connectivity_counter;}
+          simcluster_si_connectivity_counter = 0;
         }
-      if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
-      lc_connectivity_counter = 0;
-      }
 
-    */
+        // Scintillator
+
+        if (hit_layer_sim_sc[i]!=0){
+          det_bool_sim_sc_histo->Fill(i);
+          simcluster_sc_connectivity_counter++;
+          if (i==46){
+            connectivity_sim_sc_histo->Fill(simcluster_sc_connectivity_counter);
+            if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
+            connectivity_max_sim_sc_histo->Fill(max_simcluster_sc_connectivity_counter);
+            for(int j=i+1-simcluster_sc_connectivity_counter; j<i+1;j++){
+              connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
+            }
+          }
         }
-      }
+        else {
+          connectivity_sim_sc_histo->Fill(simcluster_sc_connectivity_counter);
+          for(int j=i-simcluster_sc_connectivity_counter; j<i;j++){
+            connectivity_w_sim_sc_histo->Fill(j, simcluster_sc_connectivity_counter);
+          }
+          if (max_simcluster_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_simcluster_sc_connectivity_counter = simcluster_sc_connectivity_counter;}
+          simcluster_sc_connectivity_counter = 0;
+        }
+
+        // Total
+
+        if (hit_layer_sim[i]!=0){
+          det_bool_sim_histo->Fill(i);
+          simcluster_connectivity_counter++;
+          if (i==46){
+            connectivity_sim_histo->Fill(simcluster_connectivity_counter);
+            if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
+            connectivity_max_sim_histo->Fill(max_simcluster_connectivity_counter);
+            for(int j=i+1-simcluster_connectivity_counter; j<i+1;j++){
+              connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
+            }
+          }
+        }
+        else {
+          connectivity_sim_histo->Fill(simcluster_connectivity_counter);
+          for(int j=i-simcluster_connectivity_counter; j<i;j++){
+            connectivity_w_sim_histo->Fill(j, simcluster_connectivity_counter);
+          }
+          if (max_simcluster_connectivity_counter < simcluster_connectivity_counter){max_simcluster_connectivity_counter = simcluster_connectivity_counter;}
+          simcluster_connectivity_counter = 0;
+        }
+
+        // Create Plots for Rechits
+
+        // Si
+
+        if (hit_layer_rec_si[i]!=0){
+          det_bool_rec_si_histo->Fill(i);
+          reccluster_si_connectivity_counter++;
+          if (i==46){
+            connectivity_rec_si_histo->Fill(reccluster_si_connectivity_counter);
+            if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
+            connectivity_max_rec_si_histo->Fill(max_reccluster_si_connectivity_counter);
+            for(int j=i+1-reccluster_si_connectivity_counter; j<i+1;j++){
+              connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
+            }
+          }
+        }
+        else {
+          connectivity_rec_si_histo->Fill(reccluster_si_connectivity_counter);
+          for(int j=i-reccluster_si_connectivity_counter; j<i;j++){
+            connectivity_w_rec_si_histo->Fill(j, reccluster_si_connectivity_counter);
+          }
+          if (max_reccluster_si_connectivity_counter < reccluster_si_connectivity_counter){max_reccluster_si_connectivity_counter = reccluster_si_connectivity_counter;}
+          reccluster_si_connectivity_counter = 0;
+        }
+
+        // Scintillator
+
+        if (hit_layer_rec_sc[i]!=0){
+          det_bool_rec_sc_histo->Fill(i);
+          reccluster_sc_connectivity_counter++;
+          if (i==46){
+            connectivity_rec_sc_histo->Fill(reccluster_sc_connectivity_counter);
+            if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
+            connectivity_max_rec_sc_histo->Fill(max_reccluster_sc_connectivity_counter);
+            for(int j=i+1-reccluster_sc_connectivity_counter; j<i+1;j++){
+              connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
+            }
+          }
+        }
+        else {
+          connectivity_rec_sc_histo->Fill(reccluster_sc_connectivity_counter);
+          for(int j=i-reccluster_sc_connectivity_counter; j<i;j++){
+            connectivity_w_rec_sc_histo->Fill(j, reccluster_sc_connectivity_counter);
+          }
+          if (max_reccluster_sc_connectivity_counter < reccluster_sc_connectivity_counter){max_reccluster_sc_connectivity_counter = reccluster_sc_connectivity_counter;}
+          reccluster_sc_connectivity_counter = 0;
+        }
+        
+        // Total
+
+        if (hit_layer_rec[i]!=0){
+          det_bool_rec_histo->Fill(i);
+          reccluster_connectivity_counter++;
+          if (i==46){
+            connectivity_rec_histo->Fill(reccluster_connectivity_counter);
+            if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
+            connectivity_max_rec_histo->Fill(max_reccluster_connectivity_counter);
+            for(int j=i+1-reccluster_connectivity_counter; j<i+1;j++){
+              connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
+            }
+          }
+        }
+        else {
+          connectivity_rec_histo->Fill(reccluster_connectivity_counter);
+          for(int j=i-reccluster_connectivity_counter; j<i;j++){
+            connectivity_w_rec_histo->Fill(j, reccluster_connectivity_counter);
+          }
+          if (max_reccluster_connectivity_counter < reccluster_connectivity_counter){max_reccluster_connectivity_counter = reccluster_connectivity_counter;}
+          reccluster_connectivity_counter = 0;
+        }
+
+        // Create Plots for LC
+
+        // Si
+
+        if (hit_layer_lc_si[i]!=0){
+          det_bool_lc_si_histo->Fill(i);
+          lc_si_connectivity_counter++;
+          if (i==46){
+            connectivity_lc_si_histo->Fill(lc_si_connectivity_counter);
+            if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
+            connectivity_max_lc_si_histo->Fill(max_lc_si_connectivity_counter);
+            for(int j=i+1-lc_si_connectivity_counter; j<i+1;j++){
+              connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
+              }
+            }
+          }
+        else {
+          connectivity_lc_si_histo->Fill(lc_si_connectivity_counter);
+          for(int j=i-lc_si_connectivity_counter; j<i;j++){
+            connectivity_w_lc_si_histo->Fill(j, lc_si_connectivity_counter);
+            }
+          if (max_lc_si_connectivity_counter < lc_si_connectivity_counter){max_lc_si_connectivity_counter = lc_si_connectivity_counter;}
+          lc_si_connectivity_counter = 0;
+          }
+
+        // Scintillator
+
+        if (hit_layer_lc_sc[i]!=0){
+          det_bool_lc_sc_histo->Fill(i);
+          lc_sc_connectivity_counter++;
+          if (i==46){
+            connectivity_lc_sc_histo->Fill(lc_sc_connectivity_counter);
+            if (max_lc_sc_connectivity_counter < simcluster_sc_connectivity_counter){max_lc_sc_connectivity_counter = lc_sc_connectivity_counter;}
+            connectivity_max_lc_sc_histo->Fill(max_lc_sc_connectivity_counter);
+            for(int j=i+1-lc_sc_connectivity_counter; j<i+1;j++){
+              connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
+              }
+            }
+          }
+        else {
+          connectivity_lc_sc_histo->Fill(lc_sc_connectivity_counter);
+          for(int j=i-lc_sc_connectivity_counter; j<i;j++){
+            connectivity_w_lc_sc_histo->Fill(j, lc_sc_connectivity_counter);
+            }
+          if (max_lc_sc_connectivity_counter < lc_sc_connectivity_counter){max_lc_si_connectivity_counter = lc_sc_connectivity_counter;}
+          lc_sc_connectivity_counter = 0;
+          }
+
+
+        if (hit_layer_lc[i]!=0){
+          det_bool_lc_histo->Fill(i);
+          lc_connectivity_counter++;
+          if (i==46){
+            connectivity_lc_histo->Fill(lc_connectivity_counter);
+            if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
+            connectivity_max_lc_histo->Fill(max_lc_connectivity_counter);
+            for(int j=i+1-lc_connectivity_counter; j<i+1;j++){
+              connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
+              }
+            }
+          }
+        else {
+          connectivity_lc_histo->Fill(lc_connectivity_counter);
+          for(int j=i-lc_connectivity_counter; j<i;j++){
+            connectivity_w_lc_histo->Fill(j, lc_connectivity_counter);
+            }
+          if (max_lc_connectivity_counter < lc_connectivity_counter){max_lc_connectivity_counter = lc_connectivity_counter;}
+          lc_connectivity_counter = 0;
+          }
+
+*/       
+      
     }
   }
+
+
   tree->Fill();
-
-
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
