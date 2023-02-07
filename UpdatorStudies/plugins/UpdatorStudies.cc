@@ -1,13 +1,13 @@
 // -*- C++ -*-
 //
-// Package:    Analyzer/PropagatorStudies
-// Class:      PropagatorStudies
+// Package:    Analyzer/UpdatorStudies
+// Class:      UpdatorStudies
 //
-/**\class PropagatorStudies PropagatorStudies.cc Analyzer/PropagatorStudies/plugins/PropagatorStudies.cc
+/**\class UpdatorStudies UpdatorStudies.cc Analyzer/UpdatorStudies/plugins/UpdatorStudies.cc
 
  Description: [one line class summary]
 
- Implementation:
+ Implementation:f
      [Notes on implementation]
 */
 //
@@ -99,10 +99,10 @@
 using reco::TrackCollection;
 using namespace ticl;
 
-class PropagatorStudies : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class UpdatorStudies : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit PropagatorStudies(const edm::ParameterSet&);
-  ~PropagatorStudies();
+  explicit UpdatorStudies(const edm::ParameterSet&);
+  ~UpdatorStudies();
 
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -115,12 +115,13 @@ private:
       const HGCRecHitCollection& rechitsFH,
       const HGCRecHitCollection& rechitsBH) const;
   std::vector<int> matchRecHit2CPRecHits(DetId detid_, std::vector<DetId> rechitdetid_);
+  bool checkHex(float x, float y, DetId detid_);
+  bool checkScint(float eta, float phi, DetId detid_);
 
 
   hgcal::RecHitTools recHitTools_;
 
   // ----------member data ---------------------------
-  edm::EDGetTokenT<TrackCollection> tracksToken_;  //used to select what tracks to read from configuration file
   edm::EDGetTokenT<std::vector<CaloParticle>> caloParticlesToken_;
   edm::EDGetTokenT<std::vector<ticl::Trackster>> ticlTrackstersMergeToken;
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsEEToken_; 
@@ -129,6 +130,14 @@ private:
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorEMToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorHADToken_;
   edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorKFToken_;
+  edm::EDGetTokenT<std::vector<float>> xxKFToken_;
+  edm::EDGetTokenT<std::vector<float>> xyKFToken_;
+  edm::EDGetTokenT<std::vector<float>> yyKFToken_;
+  edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorToken_;
+  edm::EDGetTokenT<std::vector<float>> xxPropToken_;
+  edm::EDGetTokenT<std::vector<float>> xyPropToken_;
+  edm::EDGetTokenT<std::vector<float>> yyPropToken_;
+  edm::EDGetTokenT<float> abs_failToken_;
  //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkEMToken_;
   edm::EDGetTokenT<reco::CaloClusterCollection> hgcalLayerClustersToken_;
@@ -146,8 +155,14 @@ private:
   typedef std::map<std::string, subsubmap> submap;
   std::map<std::string, submap> x_diff;
   std::map<std::string, submap> y_diff;
+  std::map<std::string, submap> x_pull;
+  std::map<std::string, submap> y_pull;
   std::map<std::string, submap> eta_diff;
   std::map<std::string, submap> phi_diff;
+  std::map<std::string, submap> r_diff;
+
+  int eventidx = 0;
+
 
   //2D Histograms
 
@@ -166,11 +181,18 @@ private:
   std::map<std::string, submap> layer_y_diff;
   std::map<std::string, submap> layer_eta_diff;
   std::map<std::string, submap> layer_phi_diff;
+  std::map<std::string, submap> layer_r_diff;
 
   std::map<std::string, submap> layer_abs_x_diff;
   std::map<std::string, submap> layer_abs_y_diff;
   std::map<std::string, submap> layer_abs_eta_diff;
   std::map<std::string, submap> layer_abs_phi_diff;
+
+  std::map<std::string, submap> layer_eff_kf_prop;
+  std::map<std::string, submap> layer_eff_kf_hit;
+  std::map<std::string, submap> layer_eff_prop_hit;
+
+  std::map<std::string, submap> layer_eff;
 
   //2D Profiles
 
@@ -185,55 +207,13 @@ private:
   std::map<std::string, submapProfile> layer_profile_abs_phi_diff;
 
   // variables
-    
-
-  //static const Int_t maxpoints = 200;
-  //typedef struct {Float_t x[maxpoints],y[maxpoints],z[maxpoints];} POINT;
-  //Int_t npoints;
-  //POINT points;
-
-  /*
-  Int_t prop_npoints;
-  Float_t prop_x[maxpoints];
-  Float_t prop_y[maxpoints];
-  Float_t prop_z[maxpoints];
-
-  Int_t sim_npoints;
-  Float_t sim_x[maxpoints];
-  Float_t sim_y[maxpoints];
-  Float_t sim_z[maxpoints];
-
-  */
-  /*
-  Int_t rec_npoints;
-  Float_t rec_x[maxpoints];
-  Float_t rec_x[maxpoints];
-  Float_t rec_x[maxpoints];
-
-
-  Int_t lc_npoints;
-  Float_t lc_x[maxpoints];
-  Float_t lc_x[maxpoints];
-  Float_t lc_x[maxpoints];
-  */
+  
   Int_t eventnr;
   
-  /*
-  typedef std::map<std::string, float> subsubmapfloat;
-  typedef std::map<std::string, subsubmapfloat> submapfloat;
-  std::map<std::string, submapfloat> x_diff_var;
-  std::map<std::string, submapfloat> y_diff_var;
-  std::map<std::string, submapfloat> eta_diff_var;
-  std::map<std::string, submapfloat> phi_diff_var;
-
-  */
   std::string eta_;
+  std::string energy_;
+  std::string outdir_;
   std::shared_ptr<hgcal::RecHitTools> recHitTools;
-
-
-
-  // double trackPtMin_; 
-
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   edm::ESGetToken<SetupData, SetupRecord> setupToken_;
@@ -251,8 +231,7 @@ private:
 //
 // constructors and destructor
 //
-PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
-      tracksToken_(consumes<TrackCollection>(iConfig.getUntrackedParameter<edm::InputTag>("tracks"))),
+UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
       caloParticlesToken_(consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticles"))), 
       ticlTrackstersMergeToken(consumes<std::vector<ticl::Trackster> >(iConfig.getParameter<edm::InputTag>("Tracksters"))),
       hgcalRecHitsEEToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsEE"))),
@@ -261,18 +240,44 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
       //propagatorEMToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorEM"))),
       //propagatorHADToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorHAD"))),
       propagatorKFToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorKF"))),
+      xxKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xxKF"))),
+      xyKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xyKF"))),
+      yyKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("yyKF"))),
+      propagatorToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagator"))),
+      xxPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xxProp"))),
+      xyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xyProp"))),
+      yyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("yyProp"))),
+      abs_failToken_(consumes<float>(iConfig.getParameter<edm::InputTag>("abs_fail"))),
       //propagatorTrkToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrk"))),
       //propagatorTrkEMToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrkEM"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
-      // trackPtMin_(iConfig.getParameter<double>("trackPtMin")), 
       caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
-      eta_(iConfig.getParameter<std::string>("eta")){
+      eta_(iConfig.getParameter<std::string>("eta")),
+      energy_(iConfig.getParameter<std::string>("energy")),
+      outdir_(iConfig.getParameter<std::string>("outdir")){
+
+
+  
+  std::ofstream kffile(outdir_ + "/Positions/kf_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  kffile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
+  kffile.close();
+  std::ofstream propfile(outdir_ + "/Positions/prop_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  propfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
+  propfile.close();
+  std::ofstream simfile(outdir_ + "/Positions/sim_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  simfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
+  simfile.close();
+  std::ofstream cpfile(outdir_ + "/Positions/cp_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  cpfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
+  cpfile.close();
+  std::ofstream recfile(outdir_ + "/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  recfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
+  recfile.close();
 
 
   detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sc"};
-  objects = {"Simhits", "Rechits", "LCs"};
-  positions = {"Propagator", "CP"};
-
+  objects = {"Simhits", "Rechits"};
+  positions = {"Propagator", "KF", "CP"};
         
   //recHitTools_.reset(new hgcal::RecHitTools());
   //now do what ever initialization is needed
@@ -288,9 +293,6 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
   tree->Branch("weight" , &weight , "weight/F" );
   */
 
-  //tree->Branch("lcpoints", &lcpoints, 99);
-  //tree->Branch("recpoints", &lcpoints, 99);
-  //tree->Branch("simpoints", &lcpoints, 99);
   //tree->Branch("proppoints", &proppoints,"x[47]:y[47]:z[47]");
 
   //tree->Branch("npoints", &npoints,"npoints/I");  
@@ -314,11 +316,6 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
   tree->Branch("rec_y", &rec_y, "rec_y[rec_npoints]/F");
   tree->Branch("rec_z", &rec_z, "rec_z[rec_npoints]/F");
 
-  tree->Branch("lc_npoints", &lc_npoints, "lc_npoints/I");
-  tree->Branch("lc_x", &lc_x, "lc_x[lc_npoints]/F");
-  tree->Branch("lc_y", &lc_y, "lc_y[lc_npoints]/F");
-  tree->Branch("lc_z", &lc_z, "lc_z[lc_npoints]/F");
-
   */
   tree->Branch("eventnr"  , &eventnr  , "eventnr/I");
 
@@ -332,13 +329,19 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
         t_name = "phidiff_"+obj+"_"+det+"_"+pos;
         phi_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
         t_name = "xdiff_"+obj+"_"+det+"_"+pos;
-        x_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 200,-2,2));
+        x_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 600,-3,3));
         t_name = "ydiff_"+obj+"_"+det+"_"+pos;
-        y_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 200,-2,2));
+        y_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 600,-3,3));
         t_name = "xydiff_"+obj+"_"+det+"_"+pos;
-        x_y_diff[pos][obj][det].push_back(new TH2F(t_name,t_name,200,-2,2,400,-2,2));
+        x_y_diff[pos][obj][det].push_back(new TH2F(t_name,t_name,600,-3,3,120,-3,3));
         t_name = "etaphidiff_"+obj+"_"+det+"_"+pos;
-        eta_phi_diff[pos][obj][det].push_back(new TH2F(t_name,t_name,200,-0.2,0.2,200,-0.2,0.2));
+        eta_phi_diff[pos][obj][det].push_back(new TH2F(t_name,t_name,600,-0.2,0.2,120,-0.2,0.2));
+        t_name = "rdiff_"+obj+"_"+det+"_"+pos;
+        r_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 600,-3,3));
+        t_name = "xpull_"+obj+"_"+det+"_"+pos;
+        x_pull[pos][obj][det].push_back(new TH1F(t_name, t_name, 1400,-7,7));
+        t_name = "ypull_"+obj+"_"+det+"_"+pos;
+        y_pull[pos][obj][det].push_back(new TH1F(t_name, t_name, 1400,-7,7));
 
         t_name = "layer_xdiff_"+obj+"_"+det+"_"+pos;
         layer_x_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
@@ -347,7 +350,9 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
         t_name = "layer_etadiff_"+obj+"_"+det+"_"+pos;
         layer_eta_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
         t_name = "layer_phidiff_"+obj+"_"+det+"_"+pos;
-        layer_phi_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
+        layer_phi_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));        
+        t_name = "layer_rdiff_"+obj+"_"+det+"_"+pos;
+        layer_r_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
 
         t_name = "layer_abs_xdiff_"+obj+"_"+det+"_"+pos;
         layer_abs_x_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
@@ -367,11 +372,22 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
         t_name = "layer_profile_abs_phidiff_"+obj+"_"+det+"_"+pos;
         layer_profile_abs_phi_diff[pos][obj][det].push_back(new TProfile(t_name, t_name, 47,0,47,0,5));
 
+
+        t_name = "layer_eff_"+obj+"_"+det+"_"+pos;
+        layer_eff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
+
+
+
+  std::map<std::string, submap> layer_eff_kf_prop;
+  std::map<std::string, submap> layer_eff_kf_hit;
+  std::map<std::string, submap> layer_eff_prop_hit;
+
+
         for(int i=0; i<48; i++){
           std::stringstream nlayer;
           nlayer << i;
           t_name = "layer_xydiff_" + obj + "_" + det + "_" + pos +"_Layer_" + nlayer.str();    
-          layer_xydiff[pos][obj][det].push_back(new TH2F(t_name,t_name,200,-2,2,200,-2,2));
+          layer_xydiff[pos][obj][det].push_back(new TH2F(t_name,t_name,600,-3,3,600,-3,3));
         }
 
         /*
@@ -397,7 +413,7 @@ PropagatorStudies::PropagatorStudies(const edm::ParameterSet& iConfig) :
   //now do what ever initialization is needed
 }
 
-PropagatorStudies::~PropagatorStudies() {
+UpdatorStudies::~UpdatorStudies() {
   // do anything here that needs to be done at desctruction time
   // (e.g. close files, deallocate resources etc.)
   //
@@ -411,6 +427,9 @@ PropagatorStudies::~PropagatorStudies() {
         y_diff[pos][obj][det].front()->Write();
         eta_diff[pos][obj][det].front()->Write();
         phi_diff[pos][obj][det].front()->Write();
+        r_diff[pos][obj][det].front()->Write();
+        x_pull[pos][obj][det].front()->Write();
+        y_pull[pos][obj][det].front()->Write();
         layer_x_diff[pos][obj][det].front()->Write();
         layer_y_diff[pos][obj][det].front()->Write();
         layer_eta_diff[pos][obj][det].front()->Write();
@@ -425,6 +444,7 @@ PropagatorStudies::~PropagatorStudies() {
         layer_profile_abs_phi_diff[pos][obj][det].front()->Write(); 
         x_y_diff[pos][obj][det].front()->Write();
         eta_phi_diff[pos][obj][det].front()->Write();
+        layer_eff[pos][obj][det].front()->Write();
 
         for(int i=0; i<48; i++){
           layer_xydiff[pos][obj][det][i]->Write();
@@ -442,7 +462,7 @@ PropagatorStudies::~PropagatorStudies() {
 
 // ------------ method called for each event  ------------
 
-void PropagatorStudies::fillHitMap(std::map<DetId, const HGCRecHit*>& hitMap,
+void UpdatorStudies::fillHitMap(std::map<DetId, const HGCRecHit*>& hitMap,
                                 const HGCRecHitCollection& rechitsEE,
                                 const HGCRecHitCollection& rechitsFH,
                                 const HGCRecHitCollection& rechitsBH) const {
@@ -460,7 +480,26 @@ void PropagatorStudies::fillHitMap(std::map<DetId, const HGCRecHit*>& hitMap,
   }
 } // end of EfficiencyStudies::fillHitMap
 
-std::vector<int> PropagatorStudies::matchRecHit2CPRecHits(DetId detid_, std::vector<DetId> rechitdetid_) {
+
+bool UpdatorStudies::checkHex(float x, float y, DetId detId_){
+  double center_x = recHitTools_.getPosition(detId_).x();
+  double center_y = recHitTools_.getPosition(detId_).y();
+  auto geom = recHitTools_.getSubdetectorGeometry(detId_);
+  std::pair<double,double> waferParameters = static_cast<const HGCalGeometry*>(geom)->topology().dddConstants().waferParameters(true); // rmax_, hexside_
+  double q2x = abs(x - center_x);         // transform the test point locally and to quadrant 2
+  double q2y = abs(y - center_y);         // transform the test point locally and to quadrant 2
+  if (q2x > waferParameters.first || q2y > waferParameters.second*2) return false;           // bounding test (since q2 is in quadrant 2 only 2 tests are needed)
+  return 2 * waferParameters.second * waferParameters.first - waferParameters.second * q2x - waferParameters.first * q2y >= 0;   // finally the dot product can be reduced to this due to the hexagon symmetry
+}
+bool UpdatorStudies::checkScint(float eta, float phi, DetId detId_){
+  std::pair<double,double> dEtaDPhi = recHitTools_.getScintDEtaDPhi(detId_);
+  double center_eta = recHitTools_.getPosition(detId_).eta();
+  double center_phi = recHitTools_.getPosition(detId_).phi();
+  if (abs(eta - center_eta) > 0.5*dEtaDPhi.first || abs(phi - center_phi) > 0.5*dEtaDPhi.second) return false;
+  return false;
+}
+
+std::vector<int> UpdatorStudies::matchRecHit2CPRecHits(DetId detid_, std::vector<DetId> rechitdetid_) {
   std::vector<int> matchedIdxs; matchedIdxs.clear();
   for (unsigned int i0=0; i0<rechitdetid_.size(); ++i0) {
     if (detid_ == rechitdetid_[i0]) { matchedIdxs.push_back(i0); }
@@ -469,9 +508,10 @@ std::vector<int> PropagatorStudies::matchRecHit2CPRecHits(DetId detid_, std::vec
 } // end of matchRecHit2CPRecHits
 
 
-void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
+  eventidx +=1;
   //std::cout << "Analyze" << std::endl;
 
   edm::Handle<std::vector<CaloParticle>> CaloParticles;
@@ -487,10 +527,6 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<HGCRecHitCollection> recHitHandleBH;
   iEvent.getByToken(hgcalRecHitsBHToken_, recHitHandleBH);
 
-  edm::Handle<reco::CaloClusterCollection> layerClusterHandle;
-  iEvent.getByToken(hgcalLayerClustersToken_, layerClusterHandle);
-  const reco::CaloClusterCollection &lcs = *layerClusterHandle;
-
   std::map<DetId, const HGCRecHit*> hitMap;
   fillHitMap(hitMap, *recHitHandleEE, *recHitHandleFH, *recHitHandleBH);
 
@@ -498,110 +534,98 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   iEvent.getByToken(ticlTrackstersMergeToken, ticlTrackstersMerge);
   const std::vector<ticl::Trackster>& tracksters = *ticlTrackstersMerge; 
 
-  /*
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorEMHandle;
-  iEvent.getByToken(propagatorEMToken_, propagatorEMHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &propEM = *propagatorEMHandle;
-
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorHADHandle;
-  iEvent.getByToken(propagatorHADToken_, propagatorHADHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &propHAD = *propagatorHADHandle;
-  */
   edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorKFHandle;
   iEvent.getByToken(propagatorKFToken_, propagatorKFHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &propKF = *propagatorKFHandle;
-  /*
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkHandle;
-  iEvent.getByToken(propagatorTrkToken_, propagatorTrkHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &propTrk = *propagatorTrkHandle;
+  const std::vector<Point3DBase<float,GlobalTag>> &kf = *propagatorKFHandle;
 
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkEMHandle;
-  iEvent.getByToken(propagatorTrkEMToken_, propagatorTrkEMHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &propTrkEM = *propagatorTrkEMHandle;
+  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorHandle;
+  iEvent.getByToken(propagatorToken_, propagatorHandle);
+  const std::vector<Point3DBase<float,GlobalTag>> &prop = *propagatorHandle;
+
+  edm::Handle<std::vector<float>> xxPropHandle;
+  iEvent.getByToken(xxPropToken_, xxPropHandle);
+  const std::vector<float> &xxprop = *xxPropHandle;
+
+  edm::Handle<std::vector<float>> xyPropHandle;
+  iEvent.getByToken(xyPropToken_, xyPropHandle);
+  const std::vector<float> &xyprop = *xyPropHandle;
+
+  edm::Handle<std::vector<float>> yyPropHandle;
+  iEvent.getByToken(yyPropToken_, yyPropHandle);
+  const std::vector<float> &yyprop = *yyPropHandle;
+
+  edm::Handle<std::vector<float>> xxKFHandle;
+  iEvent.getByToken(xxKFToken_, xxKFHandle);
+  const std::vector<float> &xxkf = *xxKFHandle;
+
+  edm::Handle<std::vector<float>> xyKFHandle;
+  iEvent.getByToken(xyKFToken_, xyKFHandle);
+  const std::vector<float> &xykf = *xyKFHandle;
+
+  edm::Handle<std::vector<float>> yyKFHandle;
+  iEvent.getByToken(yyKFToken_, yyKFHandle);
+  const std::vector<float> &yykf = *yyKFHandle;
+
+  edm::Handle<float> abs_failHandle_;
+  iEvent.getByToken(abs_failToken_,abs_failHandle_);
+  const float &abs_fail = *abs_failHandle_;
+
+  std::cout << "Failures: " << abs_fail << std::endl;
+
+  std::map<float, GlobalPoint> gps_prop, gps_kf;
+  std::map<float, float> map_xx_kf, map_xy_kf, map_yy_kf, map_xx_prop, map_xy_prop, map_yy_prop;
+
+  std::ofstream kffile(outdir_ + "/Positions/kf_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
+  /*
+  for(const auto& gp : kf){
+    kffile << eventidx << "," << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
+    karthesian_kf[gp.z()].push_back(gp.x());
+    karthesian_kf[gp.z()].push_back(gp.y());
+
+    angular_kf[gp.z()].push_back(gp.eta());
+    angular_kf[gp.z()].push_back(gp.phi());
+  }
   */
-  // Investigate Propagator DAta
+  std::cout << "# of KF points: " << kf.size() << std::endl;
+  for(int i = 0;i<int(kf.size());i++){
+    auto gp = kf[i];
+    auto xx = xxkf[i];
+    auto xy = xykf[i];
+    auto yy = yykf[i];
 
+    kffile << eventidx << "," << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
+    gps_kf[gp.z()]=gp;
+    map_xx_kf[gp.z()]=xx;
+    map_xy_kf[gp.z()]=xy;
+    map_yy_kf[gp.z()]=yy;
+  }
+  kffile.close();
 
+  std::ofstream propfile(outdir_ + "/Positions/prop_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   /*
-  int emcounter = 0;
-  for(const auto& pem : propEM){
-    emcounter++;
+  for(const auto& gp: prop){
+    propfile << eventidx << ","  << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
+    karthesian_prop[gp.z()].push_back(gp.x());
+    karthesian_prop[gp.z()].push_back(gp.y());
+    angular_prop[gp.z()].push_back(gp.eta());
+    angular_prop[gp.z()].push_back(gp.phi());
   }
-  std::cout << "EM Data" <<emcounter << std::endl;
-
-  int hadcounter = 0;
-  for(const auto& phad : propHAD){
-    hadcounter++;
-  }
-  std::cout << "HAD Data" <<hadcounter << std::endl;
   */
+  
+  for(int i = 0;i<int(prop.size());i++){
+    auto gp = prop[i];
+    auto xx = xxprop[i];
+    auto xy = xyprop[i];
+    auto yy = yyprop[i];
+    propfile << eventidx << ","  << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
+    gps_prop[gp.z()] = gp;
 
-  std::map<float, std::vector<float>> karthesian;
-  std::map<float, std::vector<float>> angular;
-  //z.clear();
-  /*
-  int count = 0;
-  prop_npoints = 47;
-  */
-
-
-  //std::ofstream myfile;
-  //myfile.open("/eos/home-m/mmatthew/Data/Analyzer/PropagatorStudies/Position/kf.csv");
-
-  std::string root ("/eos/home-m/mmatthew/Data/Analyzer/PropagatorStudies/Analytical/mb_Val/old_commit/Position");
-  std::ofstream myfile(root + "/kf_oldlayers.csv", std::ios::app );
-  myfile << "x,y,z" <<"\n";
-
-  for(const auto& kf : propKF){
-    /*
-    std::cout << kf.x() << std::endl;
-    std::cout << kf.y() << std::endl;
-
-    std::cout << kf.z() << std::endl;
-    std::cout << kf.eta() << std::endl;
-    std::cout << kf.phi() << std::endl;
-    */
-
-
-    myfile << kf.x() << ","  << kf.y() << "," << kf.z() << "\n";
-    karthesian[kf.z()].push_back(kf.x());
-    karthesian[kf.z()].push_back(kf.y());
-
-    angular[kf.z()].push_back(kf.eta());
-    angular[kf.z()].push_back(kf.phi());
-
-    /*
-    points.x[count] = kf.x();
-    points.y[count] = kf.y();
-    points.z[count] = kf.z();
-    count++;
-    */
-    /*
-    prop_x[count] = kf.x();
-    prop_y[count] = kf.y();
-    prop_z[count] = kf.z();
-    count++;
-    */
-
+    map_xx_prop[gp.z()]=xx;
+    map_xy_prop[gp.z()]=xy;
+    map_yy_prop[gp.z()]=yy;
   }
-
-  myfile.close();
-
-
-  /*
-  int trkcounter = 0;
-  for(const auto& trk : propTrk){
-    trkcounter++;
-  }
-  std::cout << "TRK Data" <<trkcounter << std::endl;
-
-  int trkemcounter = 0;
-  for(const auto& trkem : propTrkEM){
-    trkemcounter++;
-  }
-  std::cout << "Trk EM Data" <<trkemcounter << std::endl;
-//  */
-
+  
+  propfile.close();
 
   // init vars
   const CaloGeometry &geom = iSetup.getData(caloGeomToken_);
@@ -609,26 +633,6 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 
   TString t_name;
-
-
-  // --------------------------------- Delete Me ------------------------------------
-
-  const std::vector<DetId> & ids = geom.getValidDetIds();
-  std::vector<float> zpos;
-  std::vector<unsigned int> layers;
-
-  for (auto & i : ids) {
-    unsigned int layer = recHitTools_.getLayerWithOffset(i);
-    if(std::find(layers.begin(), layers.end(), layer)==layers.end()){
-      layers.push_back(layer);
-    }
-  }
-
-  for(int i=0; i<int(layers.size());i++){
-    std::cout << layers[i] << std::endl;
-  }
-
-  // --------------------------------- Delete Me ------------------------------------
 
   // Loop over Caloparticles 
 
@@ -638,15 +642,21 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
   float phidist = 0;
   float xdist = 0;
   float ydist = 0;
+  float rdist = 0;
+  float xpull = 0;
+  float ypull = 0;
+  bool eff;
+
 
   //std::cout << "CP z Position" << std::endl;
-  std::ofstream cpfile;
-  std::ofstream simfile;
-  cpfile.open("/eos/home-m/mmatthew/Data/Analyzer/PropagatorStudies/Position/cp.csv");
-  simfile.open("/eos/home-m/mmatthew/Data/Analyzer/PropagatorStudies/Position/sim.csv");
-  cpfile << "x,y,z" <<"\n";
-  simfile << "x,y,z" <<"\n";
+
+  std::ofstream cpfile(outdir_+"/Positions/cp_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
+  std::ofstream simfile(outdir_+"/Positions/sim_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
+  std::ofstream recfile(outdir_+"/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
+
   std::vector<DetId> tmprechits_; tmprechits_.clear();
+  int count=0;
+
   for (const auto& it_cp : cps) {
     // do something with track parameters, e.g, plot the charge.
     const CaloParticle& cp = ((it_cp)); 
@@ -654,49 +664,44 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
     cp_eta = cp.eta();
     cp_phi = cp.phi();
 
-    std::cout<<"Simhits"<<std::endl;
     for (const auto& it_simc : simclusters){
       const SimCluster& simc = (*(it_simc));
       const auto& sc_haf = simc.hits_and_fractions();
-
-      
-      //sim_npoints = simc.numberOfRecHits();
-      //count = 0;
 
       for (const auto& it_sc_haf : sc_haf){
         DetId detid_ = (it_sc_haf.first);
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
         unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_);   
+        if(gps_prop.find(recHitTools_.getPosition(detid_).z())!=gps_prop.end() && gps_kf.find(recHitTools_.getPosition(detid_).z())!=gps_kf.end()){
 
-        if(angular.find(recHitTools_.getPosition(detid_).z())!=angular.end()){
-          
-          // Fill simpoints
-
-          //simpoints["x"] = recHitTools_.getPosition(detid_).x();
-          //simpoints["y"] = recHitTools_.getPosition(detid_).y();
-          //simpoints["z"] = recHitTools_.getPosition(detid_).z();
-
-          /*
-          sim_x[count] = recHitTools_.getPosition(detid_).x();
-          sim_y[count] = recHitTools_.getPosition(detid_).y();
-          sim_z[count] = recHitTools_.getPosition(detid_).z();
-          count++;
-          */
+          count = count + 1;
 
           // Position of Propagator
-          float prop_eta = angular[recHitTools_.getPosition(detid_).z()][0];
-          float prop_phi = angular[recHitTools_.getPosition(detid_).z()][1];
 
-          float prop_x = karthesian[recHitTools_.getPosition(detid_).z()][0];
-          float prop_y = karthesian[recHitTools_.getPosition(detid_).z()][1];
+          auto gp_prop = gps_prop[recHitTools_.getPosition(detid_).z()];
+
+          // Error of Propagator
+
+          float xx_prop_disk = map_xx_prop[recHitTools_.getPosition(detid_).z()];
+          float xy_prop_disk = map_xy_prop[recHitTools_.getPosition(detid_).z()];
+          float yy_prop_disk = map_yy_prop[recHitTools_.getPosition(detid_).z()];
+
+          // Position of KF
+
+          auto gp_kf = gps_kf[recHitTools_.getPosition(detid_).z()];
+
+          // Error of Propagator
+
+          float xx_kf_disk = map_xx_kf[recHitTools_.getPosition(detid_).z()];
+          float xy_kf_disk = map_xy_kf[recHitTools_.getPosition(detid_).z()];
+          float yy_kf_disk = map_yy_kf[recHitTools_.getPosition(detid_).z()];
 
           // Position of extrapolated CP
           float cp_x = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Cos(cp_phi);
           float cp_y = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Sin(cp_phi);
           
-          cpfile << cp_x << ","  << cp_y << "," << recHitTools_.getPosition(detid_).z() << "\n";
-          simfile << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
-
+          cpfile << eventidx << ","  << cp_x << ","  << cp_y << "," << recHitTools_.getPosition(detid_).z() << "\n";
+          simfile << eventidx << ","  << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
 
           std::string detector;
           std::string thickness;
@@ -710,28 +715,86 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
             }
 
           //std::cout<<"Simhits"<<std::endl;
+          auto gp_det = recHitTools_.getPosition(detid_);
+
           for (const auto& pos: positions){
             if (pos=="Propagator"){
-              // Diff Eta Phi         
-              edist = prop_eta - recHitTools_.getPosition(detid_).eta();
-              phidist = prop_phi - recHitTools_.getPosition(detid_).phi();
 
-              // Diff x y 
-              xdist = prop_x - recHitTools_.getPosition(detid_).x();
-              ydist = prop_y - recHitTools_.getPosition(detid_).y();
+              // Diff Eta Phi         
+              edist = gp_prop.eta() - gp_det.eta();
+              phidist = gp_prop.phi() - gp_det.phi();
+
+              // Diff x y, pull
+              xdist = gp_prop.x() - gp_det.x();
+              ydist = gp_prop.y() - gp_det.y();
+
+              xpull = xdist/xx_prop_disk;
+              ypull = ydist/yy_prop_disk;
+
+              // r Diff
+
+              rdist = sqrt(gp_prop.x()*gp_prop.x() + gp_prop.y()*gp_prop.y()) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
+
+              // Check if in detector
+              /*
+              if(recHitTools_.isSilicon(detid_))  indet = checkHex(gp_prop.x(),gp_prop.y(),detid_);
+              else indet = checkScint(gp_prop.eta(),gp_prop.phi(),detid_);
+              */
+              DetId closest_detid;
+              if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_prop);
+              else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_prop, true);
+              eff = detid_ == closest_detid;
+
+            }
+            if (pos=="KF"){
+              // Diff Eta Phi         
+              edist = gp_kf.eta() - gp_det.eta();
+              phidist = gp_kf.phi() - gp_det.phi();
+
+              // Diff x y, pull
+              xdist = gp_kf.x() - gp_det.x();
+              ydist = gp_kf.y() - gp_det.y();
+
+              xpull = xdist/xx_kf_disk;
+              ypull = ydist/yy_kf_disk;
+
+              // r Diff
+
+              rdist = sqrt(gp_kf.x()*gp_kf.x() +gp_kf.y()*gp_kf.y()) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
+
+              // Check if in detector
+              /*
+              if(recHitTools_.isSilicon(detid_))  indet = checkHex(kf_x,kf_y,detid_);
+              else indet = checkScint(kf_eta,kf_phi,detid_);
+              */
+              DetId closest_detid;
+              if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_kf);
+              else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_kf,true);
+              eff = detid_ == closest_detid;
+
+
             }
             if (pos =="CP"){
 
               // Diff Eta Phi         
-              edist = cp_eta - recHitTools_.getPosition(detid_).eta();
-              phidist = cp_phi - recHitTools_.getPosition(detid_).phi();
+              edist = cp_eta - gp_det.eta();
+              phidist = cp_phi - gp_det.phi();
 
               // Diff x y 
-              xdist = cp_x - recHitTools_.getPosition(detid_).x();
-              ydist = cp_y - recHitTools_.getPosition(detid_).y();
+              xdist = cp_x - gp_det.x();
+              ydist = cp_y - gp_det.y();
 
+              // r Diff
+
+              rdist = sqrt(cp_x*cp_x +cp_y*cp_y) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
+
+              // Check if in detector
+              /*
+              if(recHitTools_.isSilicon(detid_)) indet = checkHex(cp_x,cp_y,detid_);
+              else indet = checkScint(cp_eta,cp_phi,detid_);
+              */
             }
- 
+
             for(const auto& det : detectors){
               if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
                 x_diff[pos][objects[0]][det].front()->Fill(xdist);
@@ -740,11 +803,15 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
                 phi_diff[pos][objects[0]][det].front()->Fill(phidist); 
                 x_y_diff[pos][objects[0]][det].front()->Fill(xdist,ydist);
                 eta_phi_diff[pos][objects[0]][det].front()->Fill(edist,phidist);
+                r_diff[pos][objects[0]][det].front()->Fill(rdist);
+                x_pull[pos][objects[0]][det].front()->Fill(xpull);
+                y_pull[pos][objects[0]][det].front()->Fill(ypull);
 
                 layer_x_diff[pos][objects[0]][det].front()->Fill(layer_, xdist);
                 layer_y_diff[pos][objects[0]][det].front()->Fill(layer_, ydist);
                 layer_eta_diff[pos][objects[0]][det].front()->Fill(layer_, edist);
                 layer_phi_diff[pos][objects[0]][det].front()->Fill(layer_,phidist); 
+                layer_r_diff[pos][objects[0]][det].front()->Fill(layer_,rdist);
 
                 layer_abs_x_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(xdist));
                 layer_abs_y_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(ydist));
@@ -758,28 +825,15 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
                 layer_xydiff[pos][objects[0]][det][layer_]->Fill(xdist,ydist);
 
-
-
-                /*
-                x_diff_var[pos][objects[0]][det]=xdist;
-                y_diff_var[pos][objects[0]][det]=ydist;
-                eta_diff_var[pos][objects[0]][det]=edist;
-                phi_diff_var[pos][objects[0]][det]=phidist;
-                */
+                layer_eff[pos][objects[0]][det].front()->Fill(layer_, eff);
               }
             }
           
           
             if (itcheck != hitMap.end()){
               tmprechits_.push_back(detid_);
-              // Not necessary? Detid of Simhit and Rechit the same.
+              recfile << eventidx << "," << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
 
-              // Fill recpoints
-
-              //recpoints.push_back(point);
-
-              //float drRecHitCP = getDr(rhPosition_x,rhPosition_y,cpPositionAtRecHit_x,cpPositionAtRecHit_y);
-              //std::cout<<"Rechits"<<std::endl;
               for(const auto& det : detectors){
                 if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
 
@@ -789,11 +843,15 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
                   phi_diff[pos][objects[1]][det].front()->Fill(phidist); 
                   x_y_diff[pos][objects[1]][det].front()->Fill(xdist,ydist);
                   eta_phi_diff[pos][objects[1]][det].front()->Fill(edist,phidist);
+                  r_diff[pos][objects[1]][det].front()->Fill(rdist);
+                  x_pull[pos][objects[1]][det].front()->Fill(xpull);
+                  y_pull[pos][objects[1]][det].front()->Fill(ypull);
 
                   layer_x_diff[pos][objects[1]][det].front()->Fill(layer_, xdist);
                   layer_y_diff[pos][objects[1]][det].front()->Fill(layer_, ydist);
                   layer_eta_diff[pos][objects[1]][det].front()->Fill(layer_, edist);
                   layer_phi_diff[pos][objects[1]][det].front()->Fill(layer_,phidist);
+                  layer_r_diff[pos][objects[1]][det].front()->Fill(layer_,rdist);
 
                   layer_abs_x_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(xdist));
                   layer_abs_y_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(ydist));
@@ -805,18 +863,9 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
                   layer_profile_abs_eta_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(edist),1);
                   layer_profile_abs_phi_diff[pos][objects[1]][det].front()->Fill(layer_,std::abs(phidist),1); 
 
-                  layer_xydiff[pos][objects[1]][det][layer_]->Fill(xdist,ydist);
+                  layer_xydiff[pos][objects[1]][det][layer_]->Fill(xdist,ydist);   
 
-                  /*
-
-                  x_diff_var[pos][objects[1]][det]=xdist;
-                  y_diff_var[pos][objects[1]][det]=ydist;
-                  eta_diff_var[pos][objects[1]][det]=edist;
-                  phi_diff_var[pos][objects[1]][det]=phidist;      
-
-
-                  */         
-
+                  layer_eff[pos][objects[1]][det].front()->Fill(layer_, eff);
                 }
               }
             }
@@ -830,133 +879,11 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
     }
   }
+
+  std::cout <<"NR of points collected: "<< count << std::endl;
+  recfile.close();
   cpfile.close();
   simfile.close();
-
-  // Loop over LCs  
-
-  //std::cout << "LC" << std::endl;
-  for (const auto& it_lc : lcs) {
-
-    //if(M_PI < cp_eta && cp_phi <0){
-    //  continue;
-    //}
-
-    const std::vector<std::pair<DetId, float>> &hf = it_lc.hitsAndFractions();
-
-
-    // loop over the rechits of this specific layer cluster
-    for (unsigned int j = 0; j < hf.size(); j++) { 
-      DetId detid_ = hf[j].first;
-      std::vector<int> idx_= matchRecHit2CPRecHits(detid_, tmprechits_);
-      unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_);
-
-      for (unsigned int i0=0; i0<idx_.size(); i0++) {
-        if(angular.find(recHitTools_.getPosition(detid_).z())!=angular.end()){
-
-          // Fill simpoints
-
-          //lcpoints["x"]= recHitTools_.getPosition(detid_).x();
-          //lcpoints["y"] = recHitTools_.getPosition(detid_).y();
-          //lcpoints["z"] = recHitTools_.getPosition(detid_).z();
-
-
-          // Position of Propagator
-          float prop_eta = angular[recHitTools_.getPosition(detid_).z()][0];
-          float prop_phi = angular[recHitTools_.getPosition(detid_).z()][1];
-
-          float prop_x = karthesian[recHitTools_.getPosition(detid_).z()][0];
-          float prop_y = karthesian[recHitTools_.getPosition(detid_).z()][1];
-
-          // Position of extrapolated CP
-          float cp_x = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Cos(cp_phi);
-          float cp_y = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Sin(cp_phi);
-          
-
-          std::string detector;
-          std::string thickness;
-          if(recHitTools_.isSilicon(detid_)){
-            detector = "Si";
-            thickness = std::to_string(int(recHitTools_.getSiThickness(detid_)));   
-          }
-          else{
-            detector = "Sc";
-            thickness = "None";
-          }
-          //std::cout<<"LCs"<<std::endl;
-          for (const auto& pos : positions){
-
-            if (pos=="Propagator"){
-              // Diff Eta Phi         
-              edist = prop_eta - recHitTools_.getPosition(detid_).eta();
-              phidist = prop_phi - recHitTools_.getPosition(detid_).phi();
-
-              // Diff x y 
-              xdist = prop_x - recHitTools_.getPosition(detid_).x();
-              ydist = prop_y - recHitTools_.getPosition(detid_).y();
-            }
-            if (pos =="CP"){
-
-              // Diff Eta Phi         
-              edist = cp_eta - recHitTools_.getPosition(detid_).eta();
-              phidist = cp_phi - recHitTools_.getPosition(detid_).phi();
-
-              // Diff x y 
-              xdist = cp_x - recHitTools_.getPosition(detid_).x();
-              ydist = cp_y - recHitTools_.getPosition(detid_).y();
-            }
-
-            for(const auto& det : detectors){
-              if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
-                x_diff[pos][objects[2]][det].front()->Fill(xdist);
-                y_diff[pos][objects[2]][det].front()->Fill(ydist);
-                eta_diff[pos][objects[2]][det].front()->Fill(edist);
-                phi_diff[pos][objects[2]][det].front()->Fill(phidist);
-                x_y_diff[pos][objects[2]][det].front()->Fill(xdist,ydist);
-                eta_phi_diff[pos][objects[2]][det].front()->Fill(edist,phidist);
-
-                layer_x_diff[pos][objects[2]][det].front()->Fill(layer_, xdist);
-                layer_y_diff[pos][objects[2]][det].front()->Fill(layer_, ydist);
-                layer_eta_diff[pos][objects[2]][det].front()->Fill(layer_, edist);
-                layer_phi_diff[pos][objects[2]][det].front()->Fill(layer_,phidist);
-
-                layer_abs_x_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(xdist));
-                layer_abs_y_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(ydist));
-                layer_abs_eta_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(edist));
-                layer_abs_phi_diff[pos][objects[2]][det].front()->Fill(layer_,std::abs(phidist)); 
-
-                layer_profile_abs_x_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(xdist),1);
-                layer_profile_abs_y_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(ydist),1);
-                layer_profile_abs_eta_diff[pos][objects[2]][det].front()->Fill(layer_, std::abs(edist),1);
-                layer_profile_abs_phi_diff[pos][objects[2]][det].front()->Fill(layer_,std::abs(phidist),1); 
-
-                layer_xydiff[pos][objects[2]][det][layer_]->Fill(xdist,ydist);
-
-                /*
-
-                x_diff_var[pos][objects[2]][det]=xdist;
-                y_diff_var[pos][objects[2]][det]=ydist;
-                eta_diff_var[pos][objects[2]][det]=edist;
-                phi_diff_var[pos][objects[2]][det]=phidist;
-                */
-
-                //tree->Fill();
-              }
-            }
-          }
-        }
-        else{
-          std::cout << recHitTools_.getPosition(detid_).z() <<std::endl;
-
-        }
-      }
-    }
-  }
-
-  for (const auto& track : iEvent.get(tracksToken_)) {
-    // do something with track parameters, e.g, plot the charge.
-    // int charge = track.charge();
-  }
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
@@ -968,17 +895,17 @@ void PropagatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup&
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void PropagatorStudies::beginJob() {
+void UpdatorStudies::beginJob() {
   // please remove this method if not needed
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void PropagatorStudies::endJob() {
+void UpdatorStudies::endJob() {
   // please remove this method if not needed
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void PropagatorStudies::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void UpdatorStudies::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -993,4 +920,4 @@ void PropagatorStudies::fillDescriptions(edm::ConfigurationDescriptions& descrip
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(PropagatorStudies);
+DEFINE_FWK_MODULE(UpdatorStudies);

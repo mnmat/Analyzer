@@ -13,7 +13,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Specify Eta
 
-eta = "Eta_16" # Eta_16, Eta_17, Eta_29, Eta_17_27
+eta = "Eta_17_27" # Eta_16, Eta_17, Eta_29, Eta_17_27
 
 """
 
@@ -30,10 +30,10 @@ outfile_  = 'file:file:/afs/cern.ch/user/m/mmatthew/CMSSW_12_3_0_pre5/src/hgcal_
 process.source = cms.Source("PoolSource",
                                 # replace 'myfile.root' with the source file you want to use
                                 fileNames = cms.untracked.vstring(
-            'file:/eos/home-m/mmatthew/Data/Analyzer/EfficiencyStudies/' + eta + '/singlemuon_flatEGun_hgcalCenter/step3/step3_singlemuon_e100GeV_nopu.root'
+            'file:/eos/home-m/mmatthew/Data/Analyzer/EfficiencyStudies/Test/' + eta + '/singlemuon_flatEGun_hgcalCenter/step3/step3_singlemuon_e100GeV_nopu.root'
                 )
                             )
-outfile_  = 'file:file:/eos/home-m/mmatthew/Data/Analyzer/EfficiencyStudies/'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/ttree_singlemuon_e100GeV_nopu.root'
+outfile_  = 'file:file:/eos/home-m/mmatthew/Data/Analyzer/EfficiencyStudies/Test/'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/ttree_singlemuon_e100GeV_nopu.root'
 
 
 """

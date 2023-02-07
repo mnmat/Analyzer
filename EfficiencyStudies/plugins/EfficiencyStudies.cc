@@ -120,6 +120,8 @@ private:
   float getDr(float eta1, float phi1, float eta2, float phi2);
   std::vector<int> matchRecHit2CPRecHits(DetId detid_, std::vector<DetId> rechitdetid_);
 
+  std::vector<std::string> detectors;
+  std::vector<std::string> objects;
   hgcal::RecHitTools recHitTools_;
 
   // ----------member data ---------------------------
@@ -191,6 +193,9 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
       skip_(iConfig.getParameter<int>("skip")),
       eta_(iConfig.getParameter<std::string>("eta")){
 
+  detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sc"};
+  objects = {"Simhits", "Rechits", "LCs"};
+
 
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
@@ -217,8 +222,6 @@ EfficiencyStudies::EfficiencyStudies(const edm::ParameterSet& iConfig) :
 
   // Extensive Histograms
 
-  std::vector<std::string> detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sc"};
-  std::vector<std::string> objects = {"Simhits", "Rechits", "LCs"};
   TString t_name;
   for(const auto& obj : objects){
 
@@ -314,6 +317,32 @@ EfficiencyStudies::~EfficiencyStudies() {
 
   //TLegend *leg = new TLegend(0.68,0.72,0.98,0.92); // Is dynamic memory allocation necessary?
 
+  std::cout << "Write stuff" <<std::endl;
+
+  plot_map["Energy"]["Rechits"][""].front()->Write();
+  missing_simhits_histo->Write();
+  for(auto& obj: objects){
+    plot_map["Hit Plots"][obj][""].front()->Write();
+    plot_map["Validation Plots"][obj][""].front()->Write();
+      
+    for(auto& det: detectors){
+      plot_map["Detector Hit Plots"][obj][det].front()->Write();
+      plot_map["Detector Bool Hit Plots"][obj][det].front()->Write();
+      plot_map["Connectivity Plots"][obj][det].front()->Write();
+      plot_map["W Connectivity Plots"][obj][det].front()->Write();
+      plot_map["Skip Connectivity Plots"][obj][det].front()->Write();
+      plot_map["Max Connectivity Plots"][obj][det].front()->Write();
+      plot_map["Miss Connectivity Plots"][obj][det].front()->Write();
+      plot_map["Diff Eta Plots"][obj][det].front()->Write();
+      plot_map["Diff Phi Plots"][obj][det].front()->Write();
+      plot_map["Diff x Plots"][obj][det].front()->Write();
+      plot_map["Diff y Plots"][obj][det].front()->Write();
+      plot_2D_map["Diff Eta Phi Plots"][obj][det].front()->Write();
+      plot_2D_map["Diff x y Plots"][obj][det].front()->Write();
+    }
+  }
+
+  /*
   TCanvas *c1 = new TCanvas("c1","c1"); // Is dynamic memory allocation necessary?
 
   std::vector<int> colors = {1, 4, 2};
@@ -448,7 +477,7 @@ EfficiencyStudies::~EfficiencyStudies() {
     hists = {plot_map["W Connectivity Plots"]["Simhits"][det].front(), plot_map["W Connectivity Plots"]["Rechits"][det].front(), plot_map["W Connectivity Plots"]["LCs"][det].front()};
     createTHSPlot(c1, colors, hists, t_name, axes, legend, pos, folder, "W Connectivity: " + det);
 
-    // Efficiency Plots
+    // Efficiency Plots (all hits)
 
     axes = {"Layer", "Efficiency"};
 
@@ -465,6 +494,25 @@ EfficiencyStudies::~EfficiencyStudies() {
 
     hists = {eff_sim_rec_histo, eff_sim_lc_histo};
     createTHSPlot(c1, {4,2}, hists, "Efficiency_Plots_"+det+".png", axes, {"RecHits", "LCs"}, {0.15,0.15,0.35,0.25}, folder, "Efficiency: " + det);\
+
+    // Efficiency Plots (boolean)
+
+    axes = {"Layer", "Efficiency"};
+
+    plot_map["Detector Bool Hit Plots"]["Simhits"][det].front()->SetStats(0);
+    TH1F *bool_eff_sim_rec_histo = (TH1F*)plot_map["Detector Bool Hit Plots"]["Rechits"][det].front()->Clone("Efficiency Sim vs Rec");
+    bool_eff_sim_rec_histo->SetLineColor(kBlue);
+    bool_eff_sim_rec_histo->SetStats(0);
+    TH1F *bool_eff_sim_lc_histo = (TH1F*)plot_map["Detector Bool Hit Plots"]["LCs"][det].front()->Clone("Efficiency Sim vs LC");
+    bool_eff_sim_lc_histo->SetLineColor(kRed);
+    bool_eff_sim_lc_histo->SetStats(0);
+
+    bool_eff_sim_rec_histo->Divide(plot_map["Detector Bool Hit Plots"]["Simhits"][det].front());
+    bool_eff_sim_lc_histo->Divide(plot_map["Detector Bool Hit Plots"]["Simhits"][det].front());
+
+    hists = {bool_eff_sim_rec_histo, bool_eff_sim_lc_histo};
+    createTHSPlot(c1, {4,2}, hists, "Boolean_Efficiency_Plots_"+det+".png", axes, {"RecHits", "LCs"}, {0.15,0.15,0.35,0.25}, folder, "Boolean Efficiency: " + det);
+
 
     // Distance
 
@@ -541,8 +589,9 @@ EfficiencyStudies::~EfficiencyStudies() {
     }
 
   */
-
+  /*
   }
+  */
 }
 
 
