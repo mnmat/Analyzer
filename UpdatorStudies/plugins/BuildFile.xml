@@ -32,8 +32,6 @@
 <use name="SimDataFormats/CaloAnalysis"/>
 <use name="CommonTools/UtilAlgos"/>
 <use name="FWCore/ServiceRegistry"/>
-<use name="TrackingTools/TrajectoryState"/>
-<flags   EDM_PLUGIN="1"/>
-<Flags CXXFLAGS="-O0"/>
-<Flags CXXFLAGS="-g"/>
-
+<export>
+  <lib  name="1"/>
+</export>

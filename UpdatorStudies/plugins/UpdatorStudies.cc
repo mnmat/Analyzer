@@ -68,7 +68,6 @@
 
 //ROOT includes
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TTree.h"
 #include <TFile.h>
 #include <TROOT.h>
@@ -138,6 +137,7 @@ private:
   edm::EDGetTokenT<std::vector<float>> xyPropToken_;
   edm::EDGetTokenT<std::vector<float>> yyPropToken_;
   edm::EDGetTokenT<float> abs_failToken_;
+  edm::EDGetTokenT<std::vector<float>> chargeToken_;
  //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkEMToken_;
   edm::EDGetTokenT<reco::CaloClusterCollection> hgcalLayerClustersToken_;
@@ -162,8 +162,6 @@ private:
   std::map<std::string, submap> r_diff;
 
   int eventidx = 0;
-
-
   //2D Histograms
 
   typedef std::map<std::string, std::vector<TH2F*>> subsubmap2D;
@@ -194,6 +192,9 @@ private:
 
   std::map<std::string, submap> layer_eff;
 
+  TH1F* layer_hits_Simhits;
+  TH1F* layer_hits_Rechits;
+
   //2D Profiles
 
   typedef std::map<std::string, std::vector<TProfile*>> subsubmapProfile;
@@ -209,11 +210,14 @@ private:
   // variables
   
   Int_t eventnr;
-  
   std::string eta_;
   std::string energy_;
   std::string outdir_;
   std::shared_ptr<hgcal::RecHitTools> recHitTools;
+
+  int pcharge;
+  int fail;
+  float hit_energy, kf_energy, prop_energy;
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   edm::ESGetToken<SetupData, SetupRecord> setupToken_;
@@ -248,6 +252,7 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
       xyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xyProp"))),
       yyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("yyProp"))),
       abs_failToken_(consumes<float>(iConfig.getParameter<edm::InputTag>("abs_fail"))),
+      chargeToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("charge"))),
       //propagatorTrkToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrk"))),
       //propagatorTrkEMToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrkEM"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
@@ -273,6 +278,9 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   std::ofstream recfile(outdir_ + "/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
   recfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
   recfile.close();
+  std::ofstream efffile(outdir_ + "/Efficiency/eff_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
+  efffile << "Event,eff_kf,eff_prop,simhits,rechits" <<std::endl;
+  efffile.close();
 
 
   detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sc"};
@@ -285,7 +293,7 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   usesResource("TFileService");
   edm::Service<TFileService> file;
 
-  tree = file->make<TTree>("tree","propagator");
+  tree = file->make<TTree>("tree","tree");
 
   /*
   tree->Branch("run"    , &run    , "run/I"    );
@@ -317,9 +325,19 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   tree->Branch("rec_z", &rec_z, "rec_z[rec_npoints]/F");
 
   */
+
   tree->Branch("eventnr"  , &eventnr  , "eventnr/I");
+  tree->Branch("pcharge", &pcharge);
+  tree->Branch("fail", &fail);
+
 
   TString t_name;
+  t_name = "layer_hits_Simhits";
+  layer_hits_Simhits = new TH1F(t_name, t_name, 47,0,47);
+  t_name = "layer_hits_Rechits";
+  layer_hits_Rechits = new TH1F(t_name, t_name, 47,0,47);
+
+
   for (const auto&pos : positions){
     for (const auto&obj : objects){
       for (const auto&det : detectors){
@@ -420,6 +438,10 @@ UpdatorStudies::~UpdatorStudies() {
   // please remove this method altogether if it would be left empty
 
 
+  layer_hits_Simhits->Write();
+  layer_hits_Rechits->Write();
+
+
   for(auto& pos : positions){
     for(auto& obj: objects){
       for(auto& det: detectors){
@@ -449,7 +471,6 @@ UpdatorStudies::~UpdatorStudies() {
         for(int i=0; i<48; i++){
           layer_xydiff[pos][obj][det][i]->Write();
         }
-
       }
     }
   }
@@ -570,6 +591,19 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   iEvent.getByToken(abs_failToken_,abs_failHandle_);
   const float &abs_fail = *abs_failHandle_;
 
+  edm::Handle<std::vector<float>> chargeHandle_;
+  iEvent.getByToken(chargeToken_,chargeHandle_);
+  const std::vector<float> &charge = *chargeHandle_;
+
+  std::cout << "Charge: " << std::endl;
+  pcharge=0;
+  for(auto c: charge){
+    if (c > 0) pcharge=1;
+  }
+  std::cout << pcharge << std::endl;
+  std::cout << "Endcharge" <<std::endl;
+
+  fail = abs_fail;
   std::cout << "Failures: " << abs_fail << std::endl;
 
   std::map<float, GlobalPoint> gps_prop, gps_kf;
@@ -653,9 +687,14 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   std::ofstream cpfile(outdir_+"/Positions/cp_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   std::ofstream simfile(outdir_+"/Positions/sim_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   std::ofstream recfile(outdir_+"/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
+  std::ofstream efffile(outdir_+"/Efficiency/eff_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
 
   std::vector<DetId> tmprechits_; tmprechits_.clear();
   int count=0;
+  int rhits = 0;
+  int smhits = 0;
+  int eff_kf = 0;
+  int eff_prop = 0;
 
   for (const auto& it_cp : cps) {
     // do something with track parameters, e.g, plot the charge.
@@ -666,12 +705,27 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
     for (const auto& it_simc : simclusters){
       const SimCluster& simc = (*(it_simc));
-      const auto& sc_haf = simc.hits_and_fractions();
+      const auto& sc_hae = simc.hits_and_energies();
 
-      for (const auto& it_sc_haf : sc_haf){
-        DetId detid_ = (it_sc_haf.first);
+      for (const auto& it_sc_hae : sc_haf){
+        DetId detid_ = (it_sc_hae.first);
+        float hit_energy = it_sc_hae.second;
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
-        unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_);   
+        unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_); 
+        layer_hits_Simhits->Fill(layer_,1);
+        smhits=smhits+1;
+        if (itcheck != hitMap.end()){
+          rhits=rhits+1;
+          layer_hits_Rechits->Fill(layer_,1);  
+        }
+
+        // Energies
+
+
+
+
+        // Residuals
+
         if(gps_prop.find(recHitTools_.getPosition(detid_).z())!=gps_prop.end() && gps_kf.find(recHitTools_.getPosition(detid_).z())!=gps_kf.end()){
 
           count = count + 1;
@@ -716,7 +770,6 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
           //std::cout<<"Simhits"<<std::endl;
           auto gp_det = recHitTools_.getPosition(detid_);
-
           for (const auto& pos: positions){
             if (pos=="Propagator"){
 
@@ -744,6 +797,7 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
               if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_prop);
               else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_prop, true);
               eff = detid_ == closest_detid;
+              if (eff==1) eff_prop = eff_prop+1;
 
             }
             if (pos=="KF"){
@@ -771,6 +825,7 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
               if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_kf);
               else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_kf,true);
               eff = detid_ == closest_detid;
+              if (eff==1) eff_kf = eff_kf+1;
 
 
             }
@@ -880,10 +935,17 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     }
   }
 
+
+  std::cout << "Efficiency:" << eff_kf << std::endl;
+  std::cout << "Hits:" << cps.size() << std::endl;
+  efffile << eventidx << "," << eff_kf << "," << eff_prop << ","  << smhits << ","  << rhits << "\n";
   std::cout <<"NR of points collected: "<< count << std::endl;
   recfile.close();
   cpfile.close();
   simfile.close();
+  efffile.close();
+  tree->Fill();
+
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
@@ -891,7 +953,6 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   // if need the ESHandle to check if the SetupData was there or not
   auto pSetup = iSetup.getHandle(setupToken_);
 #endif
-  tree->Fill();
 }
 
 // ------------ method called once each job just before starting event loop  ------------

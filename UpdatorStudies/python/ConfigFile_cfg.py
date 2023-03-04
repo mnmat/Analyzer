@@ -1,8 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 import argparse
 
-
-
 process = cms.Process("Demo")
 
 from Configuration.Eras.Era_Phase2C17I13M9_cff import Phase2C17I13M9
@@ -25,7 +23,8 @@ propagator = "Analytical" #Analytical, RungeKutta
 mb = "mb_ngun"
 nevents = "500"
 cap = "zpos"
-fname = '/eos/home-m/mmatthew/Data/Analyzer/UpdatorStudies/'+propagator+'/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+#fname = '/eos/user/m/mmatthew/Data/Analyzer/UpdatorStudies/'+propagator+'/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+fname = '/eos/user/m/mmatthew/Data/KF/MaterialBudget/Xi/0_25/'+ cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
 #fname = 'file:/eos/home-m/mmatthew/Data/Analyzer/UpdatorStudies/'+propagator+'mb_AG/singlemuon_flatEGun_hgcalCenter/step3/'
 
 
@@ -35,6 +34,8 @@ process.source = cms.Source("PoolSource",
 
 
 #outfile_ = 'file:/eos/home-m/mmatthew/Data/deleteme.root'
+#fname = '/eos/home-m/mmatthew/Data/Analyzer/UpdatorStudies/'+propagator+'/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+#fname = '/eos/home-m/mmatthew/Data/KF/MaterialBudget/Radlen/0_25/'+ cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
 outfile_  = 'file:'+fname + 'ttree_singlemuon_e'+energy+'GeV_eta'+eta+'_'+cap+'_events'+nevents+'_nopu.root'
 
 process.TFileService = cms.Service("TFileService",
@@ -59,6 +60,7 @@ process.demo = cms.EDAnalyzer('UpdatorStudies',
    xyProp = cms.InputTag("ticlTrackstersKF","xy Prop","RECO"),
    yyProp = cms.InputTag("ticlTrackstersKF","yy Prop","RECO"),
    abs_fail = cms.InputTag("ticlTrackstersKF","Abs Fail","RECO"),
+   charge = cms.InputTag("ticlTrackstersKF","Charge","RECO"),
    propagator = cms.InputTag("ticlTrackstersKF","Points Prop","RECO"),
    #propagatorTrk = cms.InputTag("ticlTrackstersTrk","TEST","RECO"),
    #propagatorTrkEM = cms.InputTag("ticlTrackstersTrkEM","TEST","RECO"),
