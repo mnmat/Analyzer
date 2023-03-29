@@ -145,9 +145,7 @@ private:
 
   TTree *tree = new TTree("tree","tree");
 
-  std::vector<std::string> detectors;
-  std::vector<std::string> objects;
-  std::vector<std::string> positions;
+  std::vector<std::string> detectors, objects, positions, hittypes;
 
   // Histograms
 
@@ -168,9 +166,6 @@ private:
   typedef std::map<std::string, subsubmap2D> submap2D;
   std::map<std::string, submap2D> x_y_diff;
   std::map<std::string, submap2D> eta_phi_diff;
-
-  std::map<std::string, submap2D> x_y_diff_cp;
-  std::map<std::string, submap2D> eta_phi_diff_cp;
   std::map<std::string, submap2D> layer_xydiff;
 
   //Layerwise Plots
@@ -192,8 +187,12 @@ private:
 
   std::map<std::string, submap> layer_eff;
 
-  TH1F* layer_hits_Simhits;
-  TH1F* layer_hits_Rechits;
+  submap layer_hits;
+  submap layer_energies;
+  submap hits;
+  submap energies;
+  submap single_layer_energies;
+  submap single_layer_hits;
 
   //2D Profiles
 
@@ -272,9 +271,6 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   std::ofstream simfile(outdir_ + "/Positions/sim_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
   simfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
   simfile.close();
-  std::ofstream cpfile(outdir_ + "/Positions/cp_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
-  cpfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
-  cpfile.close();
   std::ofstream recfile(outdir_ + "/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::out);
   recfile << "Event"<< ","<< "x"<< ","<<"y"<< ","<<"z"<<std::endl;
   recfile.close();
@@ -284,8 +280,9 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
 
 
   detectors = {"", "Si", "Si 120", "Si 200", "Si 300", "Sc"};
+  hittypes = {"Simhits","Rechits","Propagator","KF"};
   objects = {"Simhits", "Rechits"};
-  positions = {"Propagator", "KF", "CP"};
+  positions = {"Propagator", "KF"};
         
   //recHitTools_.reset(new hgcal::RecHitTools());
   //now do what ever initialization is needed
@@ -330,18 +327,31 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   tree->Branch("pcharge", &pcharge);
   tree->Branch("fail", &fail);
 
-
   TString t_name;
-  t_name = "layer_hits_Simhits";
-  layer_hits_Simhits = new TH1F(t_name, t_name, 47,0,47);
-  t_name = "layer_hits_Rechits";
-  layer_hits_Rechits = new TH1F(t_name, t_name, 47,0,47);
 
 
-  for (const auto&pos : positions){
-    for (const auto&obj : objects){
-      for (const auto&det : detectors){
+  for (const auto&det : detectors){
+    for (const auto&h : hittypes){
+      t_name = "layer_hits_"+h+"_"+det;
+      layer_hits[h][det].push_back(new TH1F(t_name, t_name, 47,0,47));
+      t_name = "hits_"+h+"_"+det;
+      hits[h][det].push_back(new TH1F(t_name, t_name, 100,0,100));
+      t_name = "layer_energies_"+h+"_"+det;
+      layer_energies[h][det].push_back(new TH1F(t_name, t_name, 47,0,47));
+      t_name = "energies_"+h+"_"+det;
+      energies[h][det].push_back(new TH1F(t_name, t_name, 100,0,1));
+      for (int layer=48; layer>=0; layer--){
+        std::stringstream nlayer;
+        nlayer << layer;
+        t_name = nlayer.str() + "_layer_energies_"+h+"_"+det;    
+        single_layer_energies[h][det].push_back(new TH1F(t_name,t_name,100,0,1));
+        t_name = nlayer.str() + "_layer_hits_"+h+"_"+det;    
+        single_layer_hits[h][det].push_back(new TH1F(t_name,t_name,10,0,10));
+      }
+    }
 
+    for (const auto&pos : positions){
+      for (const auto&obj : objects){
         t_name = "etadiff_"+obj+"_"+det+"_"+pos;
         eta_diff[pos][obj][det].push_back(new TH1F(t_name, t_name, 300,-0.15,0.15));
         t_name = "phidiff_"+obj+"_"+det+"_"+pos;
@@ -394,12 +404,9 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
         t_name = "layer_eff_"+obj+"_"+det+"_"+pos;
         layer_eff[pos][obj][det].push_back(new TH1F(t_name, t_name, 47,0,47));
 
-
-
-  std::map<std::string, submap> layer_eff_kf_prop;
-  std::map<std::string, submap> layer_eff_kf_hit;
-  std::map<std::string, submap> layer_eff_prop_hit;
-
+        std::map<std::string, submap> layer_eff_kf_prop;
+        std::map<std::string, submap> layer_eff_kf_hit;
+        std::map<std::string, submap> layer_eff_prop_hit;
 
         for(int i=0; i<48; i++){
           std::stringstream nlayer;
@@ -407,24 +414,10 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
           t_name = "layer_xydiff_" + obj + "_" + det + "_" + pos +"_Layer_" + nlayer.str();    
           layer_xydiff[pos][obj][det].push_back(new TH2F(t_name,t_name,600,-3,3,600,-3,3));
         }
-
-        /*
-
-        t_name = "xdiff_"+obj+"_"+det+"_"+pos;
-        tree->Branch(t_name, &x_diff_var[pos][obj][det], t_name+'/F');
-        t_name = "ydiff_"+obj+"_"+det+"_"+pos;
-        tree->Branch(t_name, &y_diff_var[pos][obj][det], t_name+'/F');
-        t_name = "etadiff_"+obj+"_"+det+"_"+pos;
-        tree->Branch(t_name, &eta_diff_var[pos][obj][det], t_name+'/F');
-        t_name = "phidiff_"+obj+"_"+det+"_"+pos;
-        tree->Branch(t_name, &phi_diff_var[pos][obj][det], t_name+'/F');
-
-        */
       }
     }
   }
 
-    
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   setupDataToken_ = esConsumes<SetupData, SetupRecord>();
 #endif
@@ -437,14 +430,19 @@ UpdatorStudies::~UpdatorStudies() {
   //
   // please remove this method altogether if it would be left empty
 
-
-  layer_hits_Simhits->Write();
-  layer_hits_Rechits->Write();
-
-
-  for(auto& pos : positions){
-    for(auto& obj: objects){
-      for(auto& det: detectors){
+  for(auto& det: detectors){
+    for(auto&h: hittypes){
+      layer_hits[h][det].front()->Write();
+      hits[h][det].front()->Write();
+      layer_energies[h][det].front()->Write();
+      energies[h][det].front()->Write();
+      for (int layer=0;layer<48; layer++){
+        single_layer_energies[h][det][layer]->Write();
+        single_layer_hits[h][det][layer]->Write();
+      }
+    }
+    for(auto& pos : positions){
+      for(auto& obj: objects){
         x_diff[pos][obj][det].front()->Write();
         y_diff[pos][obj][det].front()->Write();
         eta_diff[pos][obj][det].front()->Write();
@@ -480,7 +478,6 @@ UpdatorStudies::~UpdatorStudies() {
 // member functions
 //
 
-
 // ------------ method called for each event  ------------
 
 void UpdatorStudies::fillHitMap(std::map<DetId, const HGCRecHit*>& hitMap,
@@ -501,24 +498,6 @@ void UpdatorStudies::fillHitMap(std::map<DetId, const HGCRecHit*>& hitMap,
   }
 } // end of EfficiencyStudies::fillHitMap
 
-
-bool UpdatorStudies::checkHex(float x, float y, DetId detId_){
-  double center_x = recHitTools_.getPosition(detId_).x();
-  double center_y = recHitTools_.getPosition(detId_).y();
-  auto geom = recHitTools_.getSubdetectorGeometry(detId_);
-  std::pair<double,double> waferParameters = static_cast<const HGCalGeometry*>(geom)->topology().dddConstants().waferParameters(true); // rmax_, hexside_
-  double q2x = abs(x - center_x);         // transform the test point locally and to quadrant 2
-  double q2y = abs(y - center_y);         // transform the test point locally and to quadrant 2
-  if (q2x > waferParameters.first || q2y > waferParameters.second*2) return false;           // bounding test (since q2 is in quadrant 2 only 2 tests are needed)
-  return 2 * waferParameters.second * waferParameters.first - waferParameters.second * q2x - waferParameters.first * q2y >= 0;   // finally the dot product can be reduced to this due to the hexagon symmetry
-}
-bool UpdatorStudies::checkScint(float eta, float phi, DetId detId_){
-  std::pair<double,double> dEtaDPhi = recHitTools_.getScintDEtaDPhi(detId_);
-  double center_eta = recHitTools_.getPosition(detId_).eta();
-  double center_phi = recHitTools_.getPosition(detId_).phi();
-  if (abs(eta - center_eta) > 0.5*dEtaDPhi.first || abs(phi - center_phi) > 0.5*dEtaDPhi.second) return false;
-  return false;
-}
 
 std::vector<int> UpdatorStudies::matchRecHit2CPRecHits(DetId detid_, std::vector<DetId> rechitdetid_) {
   std::vector<int> matchedIdxs; matchedIdxs.clear();
@@ -610,16 +589,7 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   std::map<float, float> map_xx_kf, map_xy_kf, map_yy_kf, map_xx_prop, map_xy_prop, map_yy_prop;
 
   std::ofstream kffile(outdir_ + "/Positions/kf_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
-  /*
-  for(const auto& gp : kf){
-    kffile << eventidx << "," << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
-    karthesian_kf[gp.z()].push_back(gp.x());
-    karthesian_kf[gp.z()].push_back(gp.y());
 
-    angular_kf[gp.z()].push_back(gp.eta());
-    angular_kf[gp.z()].push_back(gp.phi());
-  }
-  */
   std::cout << "# of KF points: " << kf.size() << std::endl;
   for(int i = 0;i<int(kf.size());i++){
     auto gp = kf[i];
@@ -636,16 +606,6 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   kffile.close();
 
   std::ofstream propfile(outdir_ + "/Positions/prop_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
-  /*
-  for(const auto& gp: prop){
-    propfile << eventidx << ","  << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
-    karthesian_prop[gp.z()].push_back(gp.x());
-    karthesian_prop[gp.z()].push_back(gp.y());
-    angular_prop[gp.z()].push_back(gp.eta());
-    angular_prop[gp.z()].push_back(gp.phi());
-  }
-  */
-  
   for(int i = 0;i<int(prop.size());i++){
     auto gp = prop[i];
     auto xx = xxprop[i];
@@ -670,8 +630,6 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
   // Loop over Caloparticles 
 
-  float cp_eta = 0;
-  float cp_phi = 0;
   float edist = 0;
   float phidist = 0;
   float xdist = 0;
@@ -679,18 +637,12 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   float rdist = 0;
   float xpull = 0;
   float ypull = 0;
-  bool eff;
 
-
-  //std::cout << "CP z Position" << std::endl;
-
-  std::ofstream cpfile(outdir_+"/Positions/cp_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   std::ofstream simfile(outdir_+"/Positions/sim_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   std::ofstream recfile(outdir_+"/Positions/rec_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   std::ofstream efffile(outdir_+"/Efficiency/eff_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
 
   std::vector<DetId> tmprechits_; tmprechits_.clear();
-  int count=0;
   int rhits = 0;
   int smhits = 0;
   int eff_kf = 0;
@@ -700,252 +652,227 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     // do something with track parameters, e.g, plot the charge.
     const CaloParticle& cp = ((it_cp)); 
     const SimClusterRefVector& simclusters = cp.simClusters();
-    cp_eta = cp.eta();
-    cp_phi = cp.phi();
 
     for (const auto& it_simc : simclusters){
       const SimCluster& simc = (*(it_simc));
       const auto& sc_hae = simc.hits_and_energies();
 
-      for (const auto& it_sc_hae : sc_haf){
+      for (const auto& it_sc_hae : sc_hae){
+
+        // Characterize Hit
+
         DetId detid_ = (it_sc_hae.first);
         float hit_energy = it_sc_hae.second;
         std::map<DetId,const HGCRecHit *>::const_iterator itcheck = hitMap.find(detid_);
         unsigned int layer_ = recHitTools_.getLayerWithOffset(detid_); 
-        layer_hits_Simhits->Fill(layer_,1);
+
+        std::string detector;
+        std::string thickness;
+        std::string tmp;
+
+        if(recHitTools_.isSilicon(detid_)){
+          detector = "Si";
+          thickness = std::to_string(int(recHitTools_.getSiThickness(detid_))); 
+          tmp = detector+" "+thickness;
+          auto it = std::find(detectors.begin(), detectors.end(), tmp);
+          if(it != detectors.end()){
+            std::cout << "I'm alive" << std::endl;
+            std::cout << tmp << std::endl;
+          }
+        }
+        else{
+          detector = "Sc";
+          thickness = "None";
+          tmp = "Sc";
+          }
+
+        // Position
+
+        simfile << eventidx << ","  << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
+
+        // Hits & Energies
+
+
+        layer_hits["Simhits"][""].front()->Fill(layer_,1);
+        layer_hits["Simhits"][tmp].front()->Fill(layer_,1);
+        hits["Simhits"][""].front()->Fill(1);
+        hits["Simhits"][tmp].front()->Fill(1);
+        layer_energies["Simhits"][""].front()->Fill(layer_, hit_energy);
+        layer_energies["Simhits"][tmp].front()->Fill(layer_, hit_energy);
+        energies["Simhits"][""].front()->Fill(hit_energy);
+        energies["Simhits"][tmp].front()->Fill(hit_energy);
+        single_layer_energies["Simhits"][tmp][layer_]->Fill(hit_energy);
+        single_layer_energies["Simhits"][""][layer_]->Fill(hit_energy);
+        single_layer_hits["Simhits"][tmp][layer_]->Fill(1);
         smhits=smhits+1;
         if (itcheck != hitMap.end()){
           rhits=rhits+1;
-          layer_hits_Rechits->Fill(layer_,1);  
+          layer_hits["Rechits"][""].front()->Fill(layer_,1);  
+          layer_hits["Rechits"][tmp].front()->Fill(layer_,1);
+          hits["Rechits"][""].front()->Fill(1);
+          hits["Rechits"][tmp].front()->Fill(1);
+          layer_energies["Rechits"][""].front()->Fill(layer_, hit_energy);
+          layer_energies["Rechits"][tmp].front()->Fill(layer_, hit_energy);
+          energies["Rechits"][""].front()->Fill(hit_energy);
+          energies["Rechits"][tmp].front()->Fill(hit_energy);
+          single_layer_energies["Rechits"][tmp][layer_]->Fill(hit_energy);
+          single_layer_energies["Rechits"][""][layer_]->Fill(hit_energy);
+          single_layer_hits["Rechits"][tmp][layer_]->Fill(1);
+          //energies["Rechits"][detector].front()->Fill(hit_energy);
         }
 
-        // Energies
+        // KF & Propagator 
+        for (const auto& pos: positions){
+          auto &gps = (pos=="KF")? gps_kf:gps_prop;
+          auto &map_xx = (pos=="KF")? map_xx_kf:map_xx_prop;
+          auto &map_xy = (pos=="KF")? map_xx_kf:map_xx_prop;
+          auto &map_yy = (pos=="KF")? map_xx_kf:map_xx_prop;
+          auto &eff = (pos=="KF")? eff_kf:eff_prop;
 
+          // Position
 
+          auto gp = gps[recHitTools_.getPosition(detid_).z()];
 
+          // Covariance Matrix
 
-        // Residuals
+          float xx_disk = map_xx[recHitTools_.getPosition(detid_).z()];
+          float xy_disk = map_xy[recHitTools_.getPosition(detid_).z()];
+          float yy_disk = map_yy[recHitTools_.getPosition(detid_).z()];
 
-        if(gps_prop.find(recHitTools_.getPosition(detid_).z())!=gps_prop.end() && gps_kf.find(recHitTools_.getPosition(detid_).z())!=gps_kf.end()){
-
-          count = count + 1;
-
-          // Position of Propagator
-
-          auto gp_prop = gps_prop[recHitTools_.getPosition(detid_).z()];
-
-          // Error of Propagator
-
-          float xx_prop_disk = map_xx_prop[recHitTools_.getPosition(detid_).z()];
-          float xy_prop_disk = map_xy_prop[recHitTools_.getPosition(detid_).z()];
-          float yy_prop_disk = map_yy_prop[recHitTools_.getPosition(detid_).z()];
-
-          // Position of KF
-
-          auto gp_kf = gps_kf[recHitTools_.getPosition(detid_).z()];
-
-          // Error of Propagator
-
-          float xx_kf_disk = map_xx_kf[recHitTools_.getPosition(detid_).z()];
-          float xy_kf_disk = map_xy_kf[recHitTools_.getPosition(detid_).z()];
-          float yy_kf_disk = map_yy_kf[recHitTools_.getPosition(detid_).z()];
-
-          // Position of extrapolated CP
-          float cp_x = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Cos(cp_phi);
-          float cp_y = -1.*recHitTools_.getPosition(detid_).z()*TMath::Tan(2.*(TMath::ATan(TMath::Exp(cp_eta))))*TMath::Sin(cp_phi);
-          
-          cpfile << eventidx << ","  << cp_x << ","  << cp_y << "," << recHitTools_.getPosition(detid_).z() << "\n";
-          simfile << eventidx << ","  << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
-
-          std::string detector;
-          std::string thickness;
-          if(recHitTools_.isSilicon(detid_)){
-            detector = "Si";
-            thickness = std::to_string(int(recHitTools_.getSiThickness(detid_))); 
+          // Efficiency
+          float e = 0;
+          DetId closest_detid;
+          if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp);
+          else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp, true);
+          if (detid_ == closest_detid){
+            std::map<DetId,const HGCRecHit *>::const_iterator echeck = hitMap.find(closest_detid);
+            if (echeck != hitMap.end()){
+              e = hitMap[closest_detid]->energy();
+            }
+            eff = eff+1;
+            layer_hits[pos][""].front()->Fill(layer_,1);
+            layer_hits[pos][tmp].front()->Fill(layer_,1);
+            hits[pos][""].front()->Fill(1);
+            hits[pos][tmp].front()->Fill(1);
+            layer_energies[pos][""].front()->Fill(layer_, e);
+            layer_energies[pos][tmp].front()->Fill(layer_, e);
+            energies[pos][""].front()->Fill(e);
+            energies[pos][tmp].front()->Fill(e);
+            single_layer_energies[pos][""][layer_]->Fill(e);
+            single_layer_energies[pos][tmp][layer_]->Fill(e);
+            single_layer_hits[pos][tmp][layer_]->Fill(1);
           }
-          else{
-            detector = "Sc";
-            thickness = "None";
-            }
 
-          //std::cout<<"Simhits"<<std::endl;
+          // Residuals
           auto gp_det = recHitTools_.getPosition(detid_);
-          for (const auto& pos: positions){
-            if (pos=="Propagator"){
+          if(gps.find(recHitTools_.getPosition(detid_).z())!=gps.end()){
 
               // Diff Eta Phi         
-              edist = gp_prop.eta() - gp_det.eta();
-              phidist = gp_prop.phi() - gp_det.phi();
+              edist = gp.eta() - gp_det.eta();
+              phidist = gp.phi() - gp_det.phi();
 
               // Diff x y, pull
-              xdist = gp_prop.x() - gp_det.x();
-              ydist = gp_prop.y() - gp_det.y();
+              xdist = gp.x() - gp_det.x();
+              ydist = gp.y() - gp_det.y();
 
-              xpull = xdist/xx_prop_disk;
-              ypull = ydist/yy_prop_disk;
-
-              // r Diff
-
-              rdist = sqrt(gp_prop.x()*gp_prop.x() + gp_prop.y()*gp_prop.y()) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
-
-              // Check if in detector
-              /*
-              if(recHitTools_.isSilicon(detid_))  indet = checkHex(gp_prop.x(),gp_prop.y(),detid_);
-              else indet = checkScint(gp_prop.eta(),gp_prop.phi(),detid_);
-              */
-              DetId closest_detid;
-              if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_prop);
-              else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_prop, true);
-              eff = detid_ == closest_detid;
-              if (eff==1) eff_prop = eff_prop+1;
-
-            }
-            if (pos=="KF"){
-              // Diff Eta Phi         
-              edist = gp_kf.eta() - gp_det.eta();
-              phidist = gp_kf.phi() - gp_det.phi();
-
-              // Diff x y, pull
-              xdist = gp_kf.x() - gp_det.x();
-              ydist = gp_kf.y() - gp_det.y();
-
-              xpull = xdist/xx_kf_disk;
-              ypull = ydist/yy_kf_disk;
+              xpull = xdist/xx_disk;
+              ypull = ydist/yy_disk;
 
               // r Diff
 
-              rdist = sqrt(gp_kf.x()*gp_kf.x() +gp_kf.y()*gp_kf.y()) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
-
-              // Check if in detector
-              /*
-              if(recHitTools_.isSilicon(detid_))  indet = checkHex(kf_x,kf_y,detid_);
-              else indet = checkScint(kf_eta,kf_phi,detid_);
-              */
-              DetId closest_detid;
-              if (detector == "Sc") closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCell(gp_kf);
-              else closest_detid = static_cast<const HGCalGeometry*>(recHitTools_.getSubdetectorGeometry(detid_))->getClosestCellHex(gp_kf,true);
-              eff = detid_ == closest_detid;
-              if (eff==1) eff_kf = eff_kf+1;
-
-
-            }
-            if (pos =="CP"){
-
-              // Diff Eta Phi         
-              edist = cp_eta - gp_det.eta();
-              phidist = cp_phi - gp_det.phi();
-
-              // Diff x y 
-              xdist = cp_x - gp_det.x();
-              ydist = cp_y - gp_det.y();
-
-              // r Diff
-
-              rdist = sqrt(cp_x*cp_x +cp_y*cp_y) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
-
-              // Check if in detector
-              /*
-              if(recHitTools_.isSilicon(detid_)) indet = checkHex(cp_x,cp_y,detid_);
-              else indet = checkScint(cp_eta,cp_phi,detid_);
-              */
-            }
-
-            for(const auto& det : detectors){
-              if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
-                x_diff[pos][objects[0]][det].front()->Fill(xdist);
-                y_diff[pos][objects[0]][det].front()->Fill(ydist);
-                eta_diff[pos][objects[0]][det].front()->Fill(edist);
-                phi_diff[pos][objects[0]][det].front()->Fill(phidist); 
-                x_y_diff[pos][objects[0]][det].front()->Fill(xdist,ydist);
-                eta_phi_diff[pos][objects[0]][det].front()->Fill(edist,phidist);
-                r_diff[pos][objects[0]][det].front()->Fill(rdist);
-                x_pull[pos][objects[0]][det].front()->Fill(xpull);
-                y_pull[pos][objects[0]][det].front()->Fill(ypull);
-
-                layer_x_diff[pos][objects[0]][det].front()->Fill(layer_, xdist);
-                layer_y_diff[pos][objects[0]][det].front()->Fill(layer_, ydist);
-                layer_eta_diff[pos][objects[0]][det].front()->Fill(layer_, edist);
-                layer_phi_diff[pos][objects[0]][det].front()->Fill(layer_,phidist); 
-                layer_r_diff[pos][objects[0]][det].front()->Fill(layer_,rdist);
-
-                layer_abs_x_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(xdist));
-                layer_abs_y_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(ydist));
-                layer_abs_eta_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(edist));
-                layer_abs_phi_diff[pos][objects[0]][det].front()->Fill(layer_,std::abs(phidist)); 
-
-                layer_profile_abs_x_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(xdist),1);
-                layer_profile_abs_y_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(ydist),1);
-                layer_profile_abs_eta_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(edist),1);
-                layer_profile_abs_phi_diff[pos][objects[0]][det].front()->Fill(layer_,std::abs(phidist),1); 
-
-                layer_xydiff[pos][objects[0]][det][layer_]->Fill(xdist,ydist);
-
-                layer_eff[pos][objects[0]][det].front()->Fill(layer_, eff);
-              }
-            }
-          
-          
-            if (itcheck != hitMap.end()){
-              tmprechits_.push_back(detid_);
-              recfile << eventidx << "," << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
+              rdist = sqrt(gp.x()*gp.x() + gp.y()*gp.y()) - sqrt(gp_det.x()*gp_det.x() + gp_det.y()*gp_det.y());
+              
 
               for(const auto& det : detectors){
                 if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
+                  x_diff[pos][objects[0]][det].front()->Fill(xdist);
+                  y_diff[pos][objects[0]][det].front()->Fill(ydist);
+                  eta_diff[pos][objects[0]][det].front()->Fill(edist);
+                  phi_diff[pos][objects[0]][det].front()->Fill(phidist); 
+                  x_y_diff[pos][objects[0]][det].front()->Fill(xdist,ydist);
+                  eta_phi_diff[pos][objects[0]][det].front()->Fill(edist,phidist);
+                  r_diff[pos][objects[0]][det].front()->Fill(rdist);
+                  x_pull[pos][objects[0]][det].front()->Fill(xpull);
+                  y_pull[pos][objects[0]][det].front()->Fill(ypull);
 
-                  x_diff[pos][objects[1]][det].front()->Fill(xdist);
-                  y_diff[pos][objects[1]][det].front()->Fill(ydist);
-                  eta_diff[pos][objects[1]][det].front()->Fill(edist);
-                  phi_diff[pos][objects[1]][det].front()->Fill(phidist); 
-                  x_y_diff[pos][objects[1]][det].front()->Fill(xdist,ydist);
-                  eta_phi_diff[pos][objects[1]][det].front()->Fill(edist,phidist);
-                  r_diff[pos][objects[1]][det].front()->Fill(rdist);
-                  x_pull[pos][objects[1]][det].front()->Fill(xpull);
-                  y_pull[pos][objects[1]][det].front()->Fill(ypull);
+                  layer_x_diff[pos][objects[0]][det].front()->Fill(layer_, xdist);
+                  layer_y_diff[pos][objects[0]][det].front()->Fill(layer_, ydist);
+                  layer_eta_diff[pos][objects[0]][det].front()->Fill(layer_, edist);
+                  layer_phi_diff[pos][objects[0]][det].front()->Fill(layer_,phidist); 
+                  layer_r_diff[pos][objects[0]][det].front()->Fill(layer_,rdist);
 
-                  layer_x_diff[pos][objects[1]][det].front()->Fill(layer_, xdist);
-                  layer_y_diff[pos][objects[1]][det].front()->Fill(layer_, ydist);
-                  layer_eta_diff[pos][objects[1]][det].front()->Fill(layer_, edist);
-                  layer_phi_diff[pos][objects[1]][det].front()->Fill(layer_,phidist);
-                  layer_r_diff[pos][objects[1]][det].front()->Fill(layer_,rdist);
+                  layer_abs_x_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(xdist));
+                  layer_abs_y_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(ydist));
+                  layer_abs_eta_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(edist));
+                  layer_abs_phi_diff[pos][objects[0]][det].front()->Fill(layer_,std::abs(phidist)); 
 
-                  layer_abs_x_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(xdist));
-                  layer_abs_y_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(ydist));
-                  layer_abs_eta_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(edist));
-                  layer_abs_phi_diff[pos][objects[1]][det].front()->Fill(layer_,std::abs(phidist)); 
-              
-                  layer_profile_abs_x_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(xdist),1);
-                  layer_profile_abs_y_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(ydist),1);
-                  layer_profile_abs_eta_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(edist),1);
-                  layer_profile_abs_phi_diff[pos][objects[1]][det].front()->Fill(layer_,std::abs(phidist),1); 
+                  layer_profile_abs_x_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(xdist),1);
+                  layer_profile_abs_y_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(ydist),1);
+                  layer_profile_abs_eta_diff[pos][objects[0]][det].front()->Fill(layer_, std::abs(edist),1);
+                  layer_profile_abs_phi_diff[pos][objects[0]][det].front()->Fill(layer_,std::abs(phidist),1); 
 
-                  layer_xydiff[pos][objects[1]][det][layer_]->Fill(xdist,ydist);   
+                  layer_xydiff[pos][objects[0]][det][layer_]->Fill(xdist,ydist);
 
-                  layer_eff[pos][objects[1]][det].front()->Fill(layer_, eff);
+                  layer_eff[pos][objects[0]][det].front()->Fill(layer_, detid_ == closest_detid);
+                }
+              }
+            
+            
+              if (itcheck != hitMap.end()){
+                tmprechits_.push_back(detid_);
+                recfile << eventidx << "," << recHitTools_.getPosition(detid_).x() << ","  << recHitTools_.getPosition(detid_).y() << "," << recHitTools_.getPosition(detid_).z() << "\n";
+
+                for(const auto& det : detectors){
+                  if(det == "" || det == detector || det.find(thickness)!=std::string::npos){
+
+                    x_diff[pos][objects[1]][det].front()->Fill(xdist);
+                    y_diff[pos][objects[1]][det].front()->Fill(ydist);
+                    eta_diff[pos][objects[1]][det].front()->Fill(edist);
+                    phi_diff[pos][objects[1]][det].front()->Fill(phidist); 
+                    x_y_diff[pos][objects[1]][det].front()->Fill(xdist,ydist);
+                    eta_phi_diff[pos][objects[1]][det].front()->Fill(edist,phidist);
+                    r_diff[pos][objects[1]][det].front()->Fill(rdist);
+                    x_pull[pos][objects[1]][det].front()->Fill(xpull);
+                    y_pull[pos][objects[1]][det].front()->Fill(ypull);
+
+                    layer_x_diff[pos][objects[1]][det].front()->Fill(layer_, xdist);
+                    layer_y_diff[pos][objects[1]][det].front()->Fill(layer_, ydist);
+                    layer_eta_diff[pos][objects[1]][det].front()->Fill(layer_, edist);
+                    layer_phi_diff[pos][objects[1]][det].front()->Fill(layer_,phidist);
+                    layer_r_diff[pos][objects[1]][det].front()->Fill(layer_,rdist);
+
+                    layer_abs_x_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(xdist));
+                    layer_abs_y_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(ydist));
+                    layer_abs_eta_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(edist));
+                    layer_abs_phi_diff[pos][objects[1]][det].front()->Fill(layer_,std::abs(phidist)); 
+                
+                    layer_profile_abs_x_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(xdist),1);
+                    layer_profile_abs_y_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(ydist),1);
+                    layer_profile_abs_eta_diff[pos][objects[1]][det].front()->Fill(layer_, std::abs(edist),1);
+                    layer_profile_abs_phi_diff[pos][objects[1]][det].front()->Fill(layer_,std::abs(phidist),1); 
+
+                    layer_xydiff[pos][objects[1]][det][layer_]->Fill(xdist,ydist);   
+
+                    layer_eff[pos][objects[1]][det].front()->Fill(layer_, detid_ == closest_detid);
+                  }
                 }
               }
             }
+          
+          else{
+            std::cout << "Incorrect z position " << recHitTools_.getPosition(detid_).z() << " at layer " << layer_<<std::endl;
           }
         }
-      
-        else{
-          std::cout << "Incorrect z position " << recHitTools_.getPosition(detid_).z() << " at layer " << layer_<<std::endl;
-        }
-        //tree->Fill();
       }
     }
   }
-
-
   std::cout << "Efficiency:" << eff_kf << std::endl;
   std::cout << "Hits:" << cps.size() << std::endl;
   efffile << eventidx << "," << eff_kf << "," << eff_prop << ","  << smhits << ","  << rhits << "\n";
-  std::cout <<"NR of points collected: "<< count << std::endl;
   recfile.close();
-  cpfile.close();
   simfile.close();
   efffile.close();
   tree->Fill();
-
 
 #ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
   // if the SetupData is always needed
