@@ -1,2 +1,3 @@
 old_EfficiencyStudies/
+*__pycache__*
 EfficiencyStudies/python/__pycache__/ConfigFile_cfg.cpython-39.pyc

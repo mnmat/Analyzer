@@ -65,6 +65,8 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
+#include "DataFormats/HGCalReco/interface/KFHit.h"
+
 
 //ROOT includes
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -128,18 +130,10 @@ private:
   edm::EDGetTokenT<HGCRecHitCollection> hgcalRecHitsBHToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorEMToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorHADToken_;
-  edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorKFToken_;
-  edm::EDGetTokenT<std::vector<float>> xxKFToken_;
-  edm::EDGetTokenT<std::vector<float>> xyKFToken_;
-  edm::EDGetTokenT<std::vector<float>> yyKFToken_;
-  edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorToken_;
-  edm::EDGetTokenT<std::vector<float>> xxPropToken_;
-  edm::EDGetTokenT<std::vector<float>> xyPropToken_;
-  edm::EDGetTokenT<std::vector<float>> yyPropToken_;
-  edm::EDGetTokenT<float> abs_failToken_;
-  edm::EDGetTokenT<std::vector<float>> chargeToken_;
  //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkToken_;
   //edm::EDGetTokenT<std::vector<Point3DBase<float,GlobalTag>>> propagatorTrkEMToken_;
+  edm::EDGetTokenT<std::vector<KFHit>> KFHitsToken_;
+  edm::EDGetTokenT<std::vector<KFHit>> PropHitsToken_;
   edm::EDGetTokenT<reco::CaloClusterCollection> hgcalLayerClustersToken_;
   edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeomToken_;
 
@@ -214,7 +208,6 @@ private:
   std::string outdir_;
   std::shared_ptr<hgcal::RecHitTools> recHitTools;
 
-  int pcharge;
   int fail;
   float hit_energy, kf_energy, prop_energy;
 
@@ -236,24 +229,13 @@ private:
 //
 UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
       caloParticlesToken_(consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticles"))), 
-      ticlTrackstersMergeToken(consumes<std::vector<ticl::Trackster> >(iConfig.getParameter<edm::InputTag>("Tracksters"))),
       hgcalRecHitsEEToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsEE"))),
       hgcalRecHitsFHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsFH"))),
       hgcalRecHitsBHToken_(consumes<HGCRecHitCollection>(iConfig.getParameter<edm::InputTag>("hgcalRecHitsBH"))),
       //propagatorEMToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorEM"))),
       //propagatorHADToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorHAD"))),
-      propagatorKFToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorKF"))),
-      xxKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xxKF"))),
-      xyKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xyKF"))),
-      yyKFToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("yyKF"))),
-      propagatorToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagator"))),
-      xxPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xxProp"))),
-      xyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("xyProp"))),
-      yyPropToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("yyProp"))),
-      abs_failToken_(consumes<float>(iConfig.getParameter<edm::InputTag>("abs_fail"))),
-      chargeToken_(consumes<std::vector<float>>(iConfig.getParameter<edm::InputTag>("charge"))),
-      //propagatorTrkToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrk"))),
-      //propagatorTrkEMToken_(consumes<std::vector<Point3DBase<float,GlobalTag> >>(iConfig.getParameter<edm::InputTag>("propagatorTrkEM"))),
+      KFHitsToken_(consumes<std::vector<KFHit>>(iConfig.getParameter<edm::InputTag>("KFHits"))),
+      PropHitsToken_(consumes<std::vector<KFHit>>(iConfig.getParameter<edm::InputTag>("PropHits"))),
       hgcalLayerClustersToken_(consumes<reco::CaloClusterCollection>(iConfig.getParameter<edm::InputTag>("hgcalLayerClusters"))),
       caloGeomToken_(esConsumes<CaloGeometry, CaloGeometryRecord>()),
       eta_(iConfig.getParameter<std::string>("eta")),
@@ -324,7 +306,6 @@ UpdatorStudies::UpdatorStudies(const edm::ParameterSet& iConfig) :
   */
 
   tree->Branch("eventnr"  , &eventnr  , "eventnr/I");
-  tree->Branch("pcharge", &pcharge);
   tree->Branch("fail", &fail);
 
   TString t_name;
@@ -530,72 +511,24 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
   std::map<DetId, const HGCRecHit*> hitMap;
   fillHitMap(hitMap, *recHitHandleEE, *recHitHandleFH, *recHitHandleBH);
 
-  edm::Handle<std::vector<ticl::Trackster>> ticlTrackstersMerge;
-  iEvent.getByToken(ticlTrackstersMergeToken, ticlTrackstersMerge);
-  const std::vector<ticl::Trackster>& tracksters = *ticlTrackstersMerge; 
+  edm::Handle<std::vector<KFHit>> KFHitsHandle;
+  iEvent.getByToken(KFHitsToken_, KFHitsHandle);
+  const std::vector<KFHit> &kf = *KFHitsHandle;
 
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorKFHandle;
-  iEvent.getByToken(propagatorKFToken_, propagatorKFHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &kf = *propagatorKFHandle;
-
-  edm::Handle<std::vector<Point3DBase<float,GlobalTag>>> propagatorHandle;
-  iEvent.getByToken(propagatorToken_, propagatorHandle);
-  const std::vector<Point3DBase<float,GlobalTag>> &prop = *propagatorHandle;
-
-  edm::Handle<std::vector<float>> xxPropHandle;
-  iEvent.getByToken(xxPropToken_, xxPropHandle);
-  const std::vector<float> &xxprop = *xxPropHandle;
-
-  edm::Handle<std::vector<float>> xyPropHandle;
-  iEvent.getByToken(xyPropToken_, xyPropHandle);
-  const std::vector<float> &xyprop = *xyPropHandle;
-
-  edm::Handle<std::vector<float>> yyPropHandle;
-  iEvent.getByToken(yyPropToken_, yyPropHandle);
-  const std::vector<float> &yyprop = *yyPropHandle;
-
-  edm::Handle<std::vector<float>> xxKFHandle;
-  iEvent.getByToken(xxKFToken_, xxKFHandle);
-  const std::vector<float> &xxkf = *xxKFHandle;
-
-  edm::Handle<std::vector<float>> xyKFHandle;
-  iEvent.getByToken(xyKFToken_, xyKFHandle);
-  const std::vector<float> &xykf = *xyKFHandle;
-
-  edm::Handle<std::vector<float>> yyKFHandle;
-  iEvent.getByToken(yyKFToken_, yyKFHandle);
-  const std::vector<float> &yykf = *yyKFHandle;
-
-  edm::Handle<float> abs_failHandle_;
-  iEvent.getByToken(abs_failToken_,abs_failHandle_);
-  const float &abs_fail = *abs_failHandle_;
-
-  edm::Handle<std::vector<float>> chargeHandle_;
-  iEvent.getByToken(chargeToken_,chargeHandle_);
-  const std::vector<float> &charge = *chargeHandle_;
-
-  std::cout << "Charge: " << std::endl;
-  pcharge=0;
-  for(auto c: charge){
-    if (c > 0) pcharge=1;
-  }
-  std::cout << pcharge << std::endl;
-  std::cout << "Endcharge" <<std::endl;
-
-  fail = abs_fail;
-  std::cout << "Failures: " << abs_fail << std::endl;
+  edm::Handle<std::vector<KFHit>> PropHitsHandle;
+  iEvent.getByToken(PropHitsToken_, PropHitsHandle);
+  const std::vector<KFHit> &prop = *PropHitsHandle;
 
   std::map<float, GlobalPoint> gps_prop, gps_kf;
   std::map<float, float> map_xx_kf, map_xy_kf, map_yy_kf, map_xx_prop, map_xy_prop, map_yy_prop;
 
   std::ofstream kffile(outdir_ + "/Positions/kf_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
 
-  std::cout << "# of KF points: " << kf.size() << std::endl;
   for(int i = 0;i<int(kf.size());i++){
-    auto gp = kf[i];
-    auto xx = xxkf[i];
-    auto xy = xykf[i];
-    auto yy = yykf[i];
+    auto gp = kf[i].center;
+    auto xx = kf[i].xx;
+    auto xy = kf[i].xy;
+    auto yy = kf[i].yy;
 
     kffile << eventidx << "," << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
     gps_kf[gp.z()]=gp;
@@ -607,10 +540,10 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
 
   std::ofstream propfile(outdir_ + "/Positions/prop_en"+energy_+"_eta_"+eta_+".csv", std::ios::app);
   for(int i = 0;i<int(prop.size());i++){
-    auto gp = prop[i];
-    auto xx = xxprop[i];
-    auto xy = xyprop[i];
-    auto yy = yyprop[i];
+    auto gp = prop[i].center;
+    auto xx = prop[i].xx;
+    auto xy = prop[i].xy;
+    auto yy = prop[i].yy;
     propfile << eventidx << ","  << gp.x() << ","  << gp.y() << "," << gp.z() << "\n";
     gps_prop[gp.z()] = gp;
 
@@ -674,11 +607,6 @@ void UpdatorStudies::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
           detector = "Si";
           thickness = std::to_string(int(recHitTools_.getSiThickness(detid_))); 
           tmp = detector+" "+thickness;
-          auto it = std::find(detectors.begin(), detectors.end(), tmp);
-          if(it != detectors.end()){
-            std::cout << "I'm alive" << std::endl;
-            std::cout << tmp << std::endl;
-          }
         }
         else{
           detector = "Sc";

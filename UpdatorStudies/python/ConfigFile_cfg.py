@@ -20,7 +20,9 @@ propagator = "Analytical" #Analytical, RungeKutta
 mb = "mb_ngun"
 nevents = "500"
 cap = "zpos"
-fname = '/eos/home-m/mmatthew/Data/KF/MissingSimhits/CMSSW_13_1_0_pre1/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+#fname = '/eos/home-m/mmatthew/Data/KF/MissingSimhits/CMSSW_13_1_0_pre1/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+fname = '/eos/user/m/mmatthew/Data/KF/CMSSW_13_1_0_pre1/Analyzer/UpdatorStudies/' + cap+'/n'+nevents+'/Eta_'+eta+'/singlemuon_flatEGun_hgcalCenter/step3/'
+
 
 process.source = cms.Source("PoolSource",
                                 # replace 'myfile.root' with the source file you want to use
@@ -39,20 +41,8 @@ process.demo = cms.EDAnalyzer('UpdatorStudies',
    hgcalRecHitsEE = cms.InputTag("HGCalRecHit", "HGCEERecHits"),
    hgcalRecHitsFH = cms.InputTag("HGCalRecHit", "HGCHEFRecHits"),
    hgcalRecHitsBH = cms.InputTag("HGCalRecHit", "HGCHEBRecHits"),
-   #propagatorEM = cms.InputTag("ticlTrackstersEM","TEST","RECO"),
-   #propagatorHAD = cms.InputTag("ticlTrackstersHAD","TEST","RECO"),
-   propagatorKF = cms.InputTag("ticlTrackstersKF","Points KF","RECO"),
-   xxKF = cms.InputTag("ticlTrackstersKF","xx KF","RECO"),
-   xyKF = cms.InputTag("ticlTrackstersKF","xy KF","RECO"),
-   yyKF = cms.InputTag("ticlTrackstersKF","yy KF","RECO"),
-   xxProp = cms.InputTag("ticlTrackstersKF","xx Prop","RECO"),
-   xyProp = cms.InputTag("ticlTrackstersKF","xy Prop","RECO"),
-   yyProp = cms.InputTag("ticlTrackstersKF","yy Prop","RECO"),
-   abs_fail = cms.InputTag("ticlTrackstersKF","Abs Fail","RECO"),
-   charge = cms.InputTag("ticlTrackstersKF","Charge","RECO"),
-   propagator = cms.InputTag("ticlTrackstersKF","Points Prop","RECO"),
-   #propagatorTrk = cms.InputTag("ticlTrackstersTrk","TEST","RECO"),
-   #propagatorTrkEM = cms.InputTag("ticlTrackstersTrkEM","TEST","RECO"),
+   KFHits = cms.InputTag("ticlTrackstersKF","KFHits","RECO"),
+   PropHits = cms.InputTag("ticlTrackstersKF","PropHits","RECO"),
    hgcalLayerClusters = cms.InputTag("hgcalLayerClusters", "", "RECO"),
    eta = cms.string(eta),
    energy = cms.string(energy), 
